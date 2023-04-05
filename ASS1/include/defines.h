@@ -1,0 +1,5 @@
+#pragma once
+
+#define MAX_INPUT_LENGTH 10000
+#define MAX_FILE_LENGTH 1000
+#define MAX_ARGUMENTS 20
