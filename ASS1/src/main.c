@@ -18,11 +18,12 @@ int main(int argc, char *argv[]){
 		printf("in-mysh-now:>");
 		fgets(input, MAX_INPUT_LENGTH, stdin);
 		parse_string(input, exe, arguments);
-		if(!strcmp(exe, "rip")) break;
+		if(!strcmp(exe, "rip")) {free_memory(input, exe, arguments); break;}
 		
 		execute(exe, arguments);
 		free_memory(input, exe, arguments);
 
 	}
 
+	return 0;
 }
