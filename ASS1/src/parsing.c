@@ -45,6 +45,11 @@ void parse_string(char* input, char* exe, char **arguments){
 	int i = 1;
 	while(token && i < MAX_ARGUMENTS){
 		strcpy(arguments[i], token);
+		if(arguments[i][0] == '$'){
+			char *env = getenv(arguments[i] + 1);
+			if(env) strcpy(arguments[i], env);
+			else {printf("Environmental variable not found\n"); exit(EXIT_FAILURE);}
+		}
 		token = strtok(NULL, tokens);
 		i++;
 	}
