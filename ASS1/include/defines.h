@@ -21,3 +21,6 @@
 #define INWORD 1
 #define INDOLLAR 2
 #define INGT 3
+
+#define READ 0
+#define WRITE 1

@@ -1,3 +1,3 @@
 #pragma once
 
-void execute(char **);
+void execute(char **, char *, char *, int );

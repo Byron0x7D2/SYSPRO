@@ -12,7 +12,9 @@
 
 void get_memory(char ***arguments, char **srcfile, char **destfile, char **word){
 	*srcfile = malloc(sizeof(char) * MAX_FILE_LENGTH);
+	strcpy(*srcfile, "");
 	*destfile = malloc(sizeof(char) * MAX_FILE_LENGTH);
+	strcpy(*destfile, "");
 	*word = malloc(sizeof(char) * MAX_WORD_LENGTH);
 	*arguments = malloc(sizeof(char*) * MAX_ARGUMENTS);
 	if(!srcfile || !destfile || !word || !arguments){
@@ -144,7 +146,7 @@ int command(){
 				break;
 			case SEMI:
 				argv[argc] = NULL;
-				execute(argv);
+				execute(argv, srcfile, destfile, append);
 				argc = 0;
 				break;
 			case AMP:
@@ -182,7 +184,7 @@ int command(){
 					free_memory(argv, srcfile, destfile, word);
 					return MYEXIT;
 				}
-				execute(argv);
+				execute(argv, srcfile, destfile, append);
 				free_memory(argv, srcfile, destfile, word);
 				return NL;
 			case MYERROR:
