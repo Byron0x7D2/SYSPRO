@@ -12,17 +12,11 @@
 #include "../include/execute.h"
 
 int main(int argc, char *argv[]){
-	char *input = NULL, *exe  = NULL, **arguments  = NULL;
-	while(1){
-		get_memory(&input, &exe, &arguments);
-		printf("in-mysh-now:>");
-		fgets(input, MAX_INPUT_LENGTH, stdin);
-		parse_string(input, exe, arguments);
-		if(!strcmp(exe, "rip")) {free_memory(input, exe, arguments); break;}
-		
-		execute(exe, arguments);
-		free_memory(input, exe, arguments);
-
+	int last_status = NL;
+	while(1){		
+		if(last_status == NL)printf("in-mysh-now:>");
+		last_status = command();
+		if(last_status == MYEXIT) break;
 	}
 
 	return 0;

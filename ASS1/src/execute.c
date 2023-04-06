@@ -9,15 +9,27 @@
 #include <fcntl.h>
 #include "../include/defines.h"
 
+void execute_cd(char **argv){
+	if(chdir(argv[1]) == -1){
+			perror("chdir");
+			exit(EXIT_FAILURE);
+	}
+	return;
+}
 
-void execute(char *exe, char **arguments){
+
+void execute(char **argv){
+	if(strcmp(argv[0], "cd") == 0){
+		execute_cd(argv);
+		return;
+	}
 	pid_t pid = fork();
 	if(pid == -1){
 		perror("fork");
 		exit(EXIT_FAILURE);
 	}
 	if(pid == 0){
-		execvp(exe, arguments);
+		execvp(argv[0], argv);
 		perror("execvp");
 		exit(EXIT_FAILURE);
 	}

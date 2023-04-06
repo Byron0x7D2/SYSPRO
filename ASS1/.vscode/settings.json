@@ -1,5 +1,6 @@
 {
 	"files.associations": {
-		"defines.h": "c"
+		"defines.h": "c",
+		"stdio.h": "c"
 	}
 }
