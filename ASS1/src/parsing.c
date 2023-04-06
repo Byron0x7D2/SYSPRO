@@ -67,8 +67,14 @@ int get_input_token(char *word){
 					case '<':
 						return LT;
 					case '>':
-						state = INGT;
-						continue;
+						c = getchar();
+						switch (c){
+							case '>':
+								return GTGT;
+							default:
+								ungetc(c, stdin);
+								return GT;
+						}
 					case ' ':
 						continue;
 					case '\t':
@@ -82,14 +88,6 @@ int get_input_token(char *word){
 						state = INWORD;
 						if(!store_char(word, &characters, c))return MYERROR;
 						continue;
-				}
-			case INGT:
-				switch (c){
-					case '>':
-						return GTGT;
-					default:
-						ungetc(c, stdin);
-						return GT;
 				}
 			case INWORD:
 				if(c != ' ' && c != '\t' && c != ';' && c != '&' && c != '|' && c != '<' && c != '>' && c != '\n'){
