@@ -55,14 +55,12 @@ void execute(char **argv, char *srcfile, char *destfile, int append){
 				perror("dup2");
 				exit(EXIT_FAILURE);
 			}
-			// close(fdsrc);
 		}
 		if(fddest != STDOUT_FILENO){
 			if(dup2(fddest, STDOUT_FILENO) == -1){
 				perror("dup2");
 				exit(EXIT_FAILURE);
 			}
-			// close(fddest);
 		}
 		execvp(argv[0], argv);
 		perror("execvp");
