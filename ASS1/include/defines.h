@@ -1,6 +1,5 @@
 #pragma once
 
-// #define MAX_INPUT_LENGTH 10000 //maybe not going to be used
 #define MAX_FILE_LENGTH 500
 #define MAX_ARGUMENTS 20
 #define MAX_WORD_LENGTH 500
