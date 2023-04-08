@@ -15,7 +15,8 @@ int main(int argc, char *argv[]){
 	int last_status = NL;
 	while(1){		
 		if(last_status == NL)printf("in-mysh-now:>");
-		last_status = command();
+		last_status = command(-1,-1, -1);
+		// printf("last stat %d\n", last_status);
 		if(last_status == MYEXIT) break;
 	}
 

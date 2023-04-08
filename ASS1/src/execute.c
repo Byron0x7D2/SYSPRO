@@ -18,15 +18,17 @@ void execute_cd(char **argv){
 }
 
 
-void execute(char **argv, char *srcfile, char *destfile, int append){
+void execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end){
 
 	if(strcmp(argv[0], "cd") == 0){
 		execute_cd(argv);
 		return;
 	}
 
+
 	int fdsrc = STDIN_FILENO;
-	if(srcfile[0]){
+	if(force_read != -1) fdsrc = force_read;
+	else if(srcfile[0]){
 		fdsrc = open(srcfile, O_RDONLY);
 		if(fdsrc == -1){
 			perror("open");
@@ -34,7 +36,8 @@ void execute(char **argv, char *srcfile, char *destfile, int append){
 		}
 	}
 	int fddest = STDOUT_FILENO; 
-	if(destfile[0]){
+	if(force_write != -1) fddest = force_write;
+	else if(destfile[0]){
 		if(append) fddest = open(destfile, O_WRONLY | O_APPEND | O_CREAT, 0666);
 		else fddest = open(destfile, O_WRONLY | O_TRUNC | O_CREAT, 0666);
 		if(fddest == -1){
@@ -51,22 +54,30 @@ void execute(char **argv, char *srcfile, char *destfile, int append){
 	}
 	if(pid == 0){
 		if(fdsrc != STDIN_FILENO){
+			if(other_end != -1) close(other_end);
+			close(STDIN_FILENO);
 			if(dup2(fdsrc, STDIN_FILENO) == -1){
 				perror("dup2");
 				exit(EXIT_FAILURE);
 			}
+			close(fdsrc);
 		}
 		if(fddest != STDOUT_FILENO){
+			if(other_end != -1) close(other_end);
+			close(STDOUT_FILENO);
 			if(dup2(fddest, STDOUT_FILENO) == -1){
 				perror("dup2");
 				exit(EXIT_FAILURE);
 			}
+			close(fddest);
 		}
 		execvp(argv[0], argv);
 		perror("execvp");
 		exit(EXIT_FAILURE);
 	}
 	else{
+		if(fdsrc != STDIN_FILENO) close(fdsrc);
+		if(fddest != STDOUT_FILENO) close(fddest);
 		wait(NULL);
 	}
 }

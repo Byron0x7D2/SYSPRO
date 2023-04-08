@@ -10,6 +10,9 @@
 #include "../include/defines.h"
 #include "../include/execute.h"
 
+
+// use glob lib for wildcards
+
 void get_memory(char ***arguments, char **srcfile, char **destfile, char **word){
 	*srcfile = malloc(sizeof(char) * MAX_FILE_LENGTH);
 	strcpy(*srcfile, "");
@@ -121,7 +124,7 @@ int get_input_token(char *word){
 	return MYERROR;
 }
 
-int command(){
+int command(int force_read, int force_write, int other_end){
 	char **argv=NULL, *srcfile=NULL, *destfile=NULL, *word=NULL;
 	get_memory(&argv, &srcfile, &destfile, &word);
 	int token, argc = 0, append = 0; //, srcfd = STDIN_FILENO, destfd = STDOUT_FILENO;
@@ -144,14 +147,31 @@ int command(){
 				break;
 			case SEMI:
 				argv[argc] = NULL;
-				execute(argv, srcfile, destfile, append);
-				argc = 0;
-				break;
+				execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
+				free_memory(argv, srcfile, destfile, word);
+				return SEMI;
 			case AMP:
 				// later
 			case BAR:
-				// later
+				int fd[2];
+				if(pipe(fd) == -1){
+					perror("pipe");
+					exit(EXIT_FAILURE);
+				}
+				argv[argc] = NULL;
+				execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ]);
+				argc = 0;
+				free_memory(argv, srcfile, destfile, word);
+				return command(fd[READ],-1, fd[WRITE]);
+
+
+				// to do: create pipe, then execute the command with duplicatinh fd[write] as 1 and executing, after call command with the file descriptor of the child as input
 			case LT:
+				if(force_read != -1) {
+					fprintf(stderr, "Ambiguous input redirect");
+					free_memory(argv, srcfile, destfile, word);
+					return MYERROR;
+				}
 				if((token = get_input_token(word)) != WORD){
 					fprintf(stderr, "No file name");
 					free_memory(argv, srcfile, destfile, word);
@@ -160,6 +180,11 @@ int command(){
 				strcpy(srcfile, word);
 				continue;
 			case GT:
+				if(force_write != -1) {
+					fprintf(stderr, "Ambiguous output redirect");
+					free_memory(argv, srcfile, destfile, word);
+					return MYERROR;
+				}
 				if((token = get_input_token(word)) != WORD){
 					fprintf(stderr, "No file name");
 					free_memory(argv, srcfile, destfile, word);
@@ -168,6 +193,11 @@ int command(){
 				strcpy(destfile, word);
 				continue;
 			case GTGT:
+				if(force_write != -1) {
+					fprintf(stderr, "Ambiguous output redirect");
+					free_memory(argv, srcfile, destfile, word);
+					return MYERROR;
+				}
 				if((token = get_input_token(word)) != WORD){
 					fprintf(stderr, "No file name");
 					free_memory(argv, srcfile, destfile, word);
@@ -182,7 +212,7 @@ int command(){
 					free_memory(argv, srcfile, destfile, word);
 					return MYEXIT;
 				}
-				execute(argv, srcfile, destfile, append);
+				execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
 				free_memory(argv, srcfile, destfile, word);
 				return NL;
 			case MYERROR:

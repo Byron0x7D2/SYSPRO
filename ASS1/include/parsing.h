@@ -1,3 +1,3 @@
 #pragma once
 
-int command();
+int command(int, int, int);
