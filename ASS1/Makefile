@@ -20,8 +20,8 @@ $(EXEC): $(OBJS)
 run: $(EXEC)
 	./$(EXEC) $(ARGS) 
 
-cleanall:
-	@rm -f $(OBJS) $(EXEC) $(wildcard $(OUT)/*.txt) valgrind-out.txt 
+cleanall:  #update this to remove all files
+	@rm -f $(OBJS) $(EXEC) $(wildcard $(OUT)/*.txt) valgrind-out.txt /home/byron/.aliases /home/byron/.history
 clean:
 	@rm -f $(OBJS) $(EXEC) 
 	

@@ -27,3 +27,5 @@
 #define WRITE 1
 
 #define HASH_SIZE 109
+
+#define HISTORY_SIZE 20

@@ -27,7 +27,7 @@ struct Hash{
 
 hash *hash_create_and_init(){
 	hash *h = malloc(sizeof(hash));
-	h->entries = 0;
+ 	h->entries = 0;
 	h->table = malloc(sizeof(entry*) * HASH_SIZE);
 	for(int i = 0; i < HASH_SIZE; i++){
 		h->table[i] = NULL;
