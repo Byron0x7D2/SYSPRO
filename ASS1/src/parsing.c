@@ -10,8 +10,8 @@
 #include "../include/defines.h"
 #include "../include/execute.h"
 #include <glob.h>
+#include "../include/hash.h"
 
-// use glob lib for wildcards
 
 void get_memory(char ***arguments, char **srcfile, char **destfile, char **word){
 	*srcfile = malloc(sizeof(char) * MAX_FILE_LENGTH);
@@ -90,6 +90,9 @@ int get_input_token(char *word){
 					case '$':
 						state = INDOLLAR;
 						continue;
+					case '\"':
+						state = INQUOTE;
+						continue;
 					default:
 						state = INWORD;
 						if(!store_char(word, &characters, c))return MYERROR;
@@ -122,6 +125,14 @@ int get_input_token(char *word){
 					strcpy(word, env);
 					return WORD;
 				}
+			case INQUOTE:
+				if(c != '\"'){
+					if(!store_char(word, &characters, c))return MYERROR;
+					continue;
+				}else{
+					if(!store_char(word, &characters, '\0'))return MYERROR;
+					return WORD;
+				}
 		}
 	}
 	return MYERROR;
@@ -149,14 +160,46 @@ void wildcards(char *word){
 	}
 }
 
-int command(int force_read, int force_write, int other_end, pid_t *wait_pid){
+void aliases(char *word, hash *h, int *argc, char **argv){
+	char *alias = hash_lookup(h, word);
+	if(!alias){
+		return ;
+	}
+	char *copy = malloc(sizeof(char) * MAX_WORD_LENGTH);
+	strcpy(copy, alias);
+	char *token = strtok(copy, "\" 	");
+	while(token){
+		if(*argc >= MAX_ARGUMENTS) {
+			fprintf(stderr, "Too many arguments");
+			return ;
+		}
+		argv[*argc] = malloc(sizeof(char) * MAX_WORD_LENGTH);
+		if(!argv[*argc]){
+			perror("malloc");
+			exit(EXIT_FAILURE);
+		}
+		strcpy(argv[*argc], token);
+		(*argc)++;
+		token = strtok(NULL, "\" 	");
+	}
+	free(copy);
+}
+
+int command(int force_read, int force_write, int other_end, pid_t *wait_pid, hash *h){
 	char **argv=NULL, *srcfile=NULL, *destfile=NULL, *word=NULL;
 	get_memory(&argv, &srcfile, &destfile, &word);
 	int token, argc = 0, append = 0; 
 	while(1){
 		switch(token = get_input_token(word)){
 			case WORD:
+
+				if(!argc){
+					aliases(word, h, &argc, argv);
+					if(argc) break;
+				}
+
 				wildcards(word);
+
 				if(argc >= MAX_ARGUMENTS) {
 					fprintf(stderr, "Too many arguments");
 					free_memory(argv, srcfile, destfile, word);
@@ -173,14 +216,14 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid){
 			case SEMI:
 				if(argc != 0){
 					argv[argc] = NULL;
-					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
+					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h);
 				}
 				free_memory(argv, srcfile, destfile, word);
 				return SEMI;
 			case AMP:
 				if(argc != 0){
 					argv[argc] = NULL;
-					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
+					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h);
 				}
 				free_memory(argv, srcfile, destfile, word);
 				return AMP;
@@ -192,7 +235,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid){
 				}
 				argv[argc] = NULL;
 				int bpid, wpid, status;
-				bpid = execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ]);
+				bpid = execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ], h);
 				if(bpid > 0){
 					do{
 						wpid = waitpid(-1, &status, 0);
@@ -200,7 +243,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid){
 				}
 				argc = 0;
 				free_memory(argv, srcfile, destfile, word);
-				return command(fd[READ],-1, fd[WRITE], wait_pid);
+				return command(fd[READ],-1, fd[WRITE], wait_pid, h);
 			case LT:
 				if(force_read != -1) {
 					fprintf(stderr, "Ambiguous input redirect");
@@ -249,7 +292,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid){
 						*wait_pid = -1;
 						return MYEXIT;
 					}
-					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
+					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h);
 				}
 				free_memory(argv, srcfile, destfile, word);
 				return NL;

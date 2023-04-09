@@ -8,6 +8,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "../include/defines.h"
+#include "../include/hash.h"
+
 
 void execute_cd(char **argv){
 	if(chdir(argv[1]) == -1){
@@ -18,10 +20,24 @@ void execute_cd(char **argv){
 }
 
 
-pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end){
+pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end, hash *h){
 
 	if(strcmp(argv[0], "cd") == 0){
 		execute_cd(argv);
+		return -1;
+	}
+
+	if(strcmp(argv[0], "createalias") == 0){
+		if(argv[1] && argv[2]){
+			hash_insert(h, argv[1], argv[2]);
+		}
+		return -1;
+	}
+
+	if(strcmp(argv[0], "destroyalias") == 0){
+		if(argv[1]){
+			hash_delete(h, argv[1]);
+		}
 		return -1;
 	}
 
