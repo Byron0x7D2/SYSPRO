@@ -180,7 +180,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid){
 			case AMP:
 				if(argc != 0){
 					argv[argc] = NULL;
-					execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
+					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
 				}
 				free_memory(argv, srcfile, destfile, word);
 				return AMP;

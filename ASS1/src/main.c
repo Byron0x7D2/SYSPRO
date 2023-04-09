@@ -10,11 +10,28 @@
 #include "../include/defines.h"
 #include "../include/parsing.h"
 #include "../include/execute.h"
+#include <signal.h>
+
+pid_t pid = -1;
+
+void catch_sigint(){
+	if(pid > 0) kill(pid, SIGINT);
+}
+
+void catch_sigtstp(){
+	if(pid > 0){ 
+		pid = -1; 
+		kill(pid, SIGTSTP); 
+	}
+	
+}
 
 int main(int argc, char *argv[]){
 	int last_status = NL;
 	int status;
-	pid_t pid = -1, wpid;
+	pid_t wpid;
+	signal(SIGINT, catch_sigint);
+	signal(SIGTSTP, catch_sigtstp);
 	while(1){		
 		if(last_status == NL)printf("in-mysh-now:>");
 		last_status = command(-1,-1, -1, &pid);
