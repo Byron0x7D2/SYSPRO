@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include "../include/defines.h"
 #include "../include/execute.h"
-
+#include <glob.h>
 
 // use glob lib for wildcards
 
@@ -127,14 +127,36 @@ int get_input_token(char *word){
 	return MYERROR;
 }
 
+void wildcards(char *word){
+	int i = 0;
+	int check = 0;
+	while(word[i] != '\0'){
+		if(word[i] == '*' || word[i] == '?' || word[i] == '[' || word[i] == ']'){
+			check =1;
+			break;
+		}
+		i++;
+	}
+	if(check){
+		glob_t globbuf;
+		glob(word, 0, NULL, &globbuf);
+		word[0] = '\0';
+		for(int i = 0; i < globbuf.gl_pathc; i++){
+			strcat(word, globbuf.gl_pathv[i]);
+			strcat(word, " ");
+		}
+		globfree(&globbuf);
+	}
+}
+
 int command(int force_read, int force_write, int other_end, pid_t *wait_pid){
 	char **argv=NULL, *srcfile=NULL, *destfile=NULL, *word=NULL;
 	get_memory(&argv, &srcfile, &destfile, &word);
-	int token, argc = 0, append = 0; //, srcfd = STDIN_FILENO, destfd = STDOUT_FILENO;
-
+	int token, argc = 0, append = 0; 
 	while(1){
 		switch(token = get_input_token(word)){
 			case WORD:
+				wildcards(word);
 				if(argc >= MAX_ARGUMENTS) {
 					fprintf(stderr, "Too many arguments");
 					free_memory(argv, srcfile, destfile, word);

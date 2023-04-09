@@ -21,8 +21,7 @@ run: $(EXEC)
 	./$(EXEC) $(ARGS) 
 
 cleanall:
-	@rm -f $(OBJS) $(EXEC) $(wildcard $(OUT)/*.txt) valgrind-out.txt out.txt
-
+	@rm -f $(OBJS) $(EXEC) $(wildcard $(OUT)/*.txt) valgrind-out.txt 
 clean:
 	@rm -f $(OBJS) $(EXEC) 
 	
