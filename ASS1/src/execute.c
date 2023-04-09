@@ -18,11 +18,11 @@ void execute_cd(char **argv){
 }
 
 
-void execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end){
+pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end){
 
 	if(strcmp(argv[0], "cd") == 0){
 		execute_cd(argv);
-		return;
+		return -1;
 	}
 
 
@@ -78,6 +78,6 @@ void execute(char **argv, char *srcfile, char *destfile, int append, int force_r
 	else{
 		if(fdsrc != STDIN_FILENO) close(fdsrc);
 		if(fddest != STDOUT_FILENO) close(fddest);
-		wait(NULL);
 	}
+	return pid;
 }

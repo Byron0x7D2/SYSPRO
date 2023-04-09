@@ -20,6 +20,9 @@ void get_memory(char ***arguments, char **srcfile, char **destfile, char **word)
 	strcpy(*destfile, "");
 	*word = malloc(sizeof(char) * MAX_WORD_LENGTH);
 	*arguments = malloc(sizeof(char*) * MAX_ARGUMENTS);
+	for(int i = 0; i < MAX_ARGUMENTS; i++){
+		(*arguments)[i] = NULL;
+	}
 	if(!srcfile || !destfile || !word || !arguments){
 		perror("malloc");
 		exit(EXIT_FAILURE);
@@ -124,7 +127,7 @@ int get_input_token(char *word){
 	return MYERROR;
 }
 
-int command(int force_read, int force_write, int other_end){
+int command(int force_read, int force_write, int other_end, pid_t *wait_pid){
 	char **argv=NULL, *srcfile=NULL, *destfile=NULL, *word=NULL;
 	get_memory(&argv, &srcfile, &destfile, &word);
 	int token, argc = 0, append = 0; //, srcfd = STDIN_FILENO, destfd = STDOUT_FILENO;
@@ -146,12 +149,19 @@ int command(int force_read, int force_write, int other_end){
 				argc++;
 				break;
 			case SEMI:
-				argv[argc] = NULL;
-				execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
+				if(argc != 0){
+					argv[argc] = NULL;
+					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
+				}
 				free_memory(argv, srcfile, destfile, word);
 				return SEMI;
 			case AMP:
-				// later
+				if(argc != 0){
+					argv[argc] = NULL;
+					execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
+				}
+				free_memory(argv, srcfile, destfile, word);
+				return AMP;
 			case BAR:
 				int fd[2];
 				if(pipe(fd) == -1){
@@ -159,13 +169,16 @@ int command(int force_read, int force_write, int other_end){
 					exit(EXIT_FAILURE);
 				}
 				argv[argc] = NULL;
-				execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ]);
+				int bpid, wpid, status;
+				bpid = execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ]);
+				if(bpid > 0){
+					do{
+						wpid = waitpid(-1, &status, 0);
+					}while(wpid != bpid);
+				}
 				argc = 0;
 				free_memory(argv, srcfile, destfile, word);
-				return command(fd[READ],-1, fd[WRITE]);
-
-
-				// to do: create pipe, then execute the command with duplicatinh fd[write] as 1 and executing, after call command with the file descriptor of the child as input
+				return command(fd[READ],-1, fd[WRITE], wait_pid);
 			case LT:
 				if(force_read != -1) {
 					fprintf(stderr, "Ambiguous input redirect");
@@ -207,12 +220,15 @@ int command(int force_read, int force_write, int other_end){
 				append = 1;
 				continue;
 			case NL:
-				argv[argc] = NULL;
-				if(!strcmp(argv[0], "rip")) {
-					free_memory(argv, srcfile, destfile, word);
-					return MYEXIT;
+				if(argc != 0){
+					argv[argc] = NULL;
+					if(!strcmp(argv[0], "rip")) {
+						free_memory(argv, srcfile, destfile, word);
+						*wait_pid = -1;
+						return MYEXIT;
+					}
+					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
 				}
-				execute(argv, srcfile, destfile, append, force_read, force_write, other_end);
 				free_memory(argv, srcfile, destfile, word);
 				return NL;
 			case MYERROR:

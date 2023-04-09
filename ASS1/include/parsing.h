@@ -1,3 +1,3 @@
 #pragma once
 
-int command(int, int, int);
+int command(int, int, int, pid_t *);
