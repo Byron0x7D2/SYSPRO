@@ -4,7 +4,8 @@
 #include "../include/hash.h"
 #include "../include/defines.h"
 
-int hashfun(char *key){
+/* Simple hash function */
+int hashfun(char *key){ 
 	int sum = 0;
 	for(int i = 0; i < strlen(key); i++){
 		sum += key[i];
@@ -12,7 +13,8 @@ int hashfun(char *key){
 	return sum % HASH_SIZE;
 }
 
-struct Entry{
+
+struct Entry{ // node to be saved in the hash table, when we have conflicts we go to the next node
 	char key[MAX_WORD_LENGTH];
 	char value[MAX_INPUT_LENGTH];
 	struct Entry *next;
@@ -20,12 +22,14 @@ struct Entry{
 
 typedef struct Entry entry;
 
-struct Hash{
+struct Hash{	// hash table
 	entry **table;
 	int entries;
 };
 
+/* Allocate memory for hash table and save the aliases from the memory file */
 hash *hash_create_and_init(){
+
 	hash *h = malloc(sizeof(hash));
  	h->entries = 0;
 	h->table = malloc(sizeof(entry*) * HASH_SIZE);
@@ -41,6 +45,7 @@ hash *hash_create_and_init(){
 	if(!fptr){
 		return h;
 	}
+
 	if(fscanf(fptr, "%d ", &entries) > 0){
 		for(int i = 0; i < entries; i++){
 			char *key;
@@ -67,6 +72,8 @@ hash *hash_create_and_init(){
 	return h;
 }
 
+/* Checks if the key exists in the hash table, 
+if yes it returns its value */
 char *hash_lookup(hash *h, char *key){
 	int index = hashfun(key);
 	entry *p = h->table[index];
@@ -79,6 +86,7 @@ char *hash_lookup(hash *h, char *key){
 	return NULL;
 }
 
+/* Deletes the entry from the hash table */
 void hash_delete(hash *h, char *key){
 	int index = hashfun(key);
 	entry *p = h->table[index];
@@ -96,6 +104,7 @@ void hash_delete(hash *h, char *key){
 	}
 }
 
+/* Inserts a new entry in the hash table */
 void hash_insert(hash *h, char *key, char *value){
 	if(hash_lookup(h,key)) return;
 	h->entries++;
@@ -116,7 +125,10 @@ void hash_insert(hash *h, char *key, char *value){
 	}
 }
 
+/* Frees the memory allocated for the hash table
+and saves the aliases in the memory file */
 void hash_destroy_and_save(hash *h){
+
 	FILE *fptr;
 	char buf[MAX_INPUT_LENGTH];
 	snprintf(buf, sizeof(buf), "%s/.aliases", getenv("HOME"));
@@ -126,6 +138,7 @@ void hash_destroy_and_save(hash *h){
 		exit(EXIT_FAILURE);
 	}
 	if(!h) return;
+
 	fprintf(fptr, "%d\n", h->entries);
 	for(int i = 0; i < HASH_SIZE; i++){
 		entry *p = h->table[i];
@@ -136,6 +149,7 @@ void hash_destroy_and_save(hash *h){
 		}
 	}
 	fclose(fptr);
+	
 	for(int i = 0; i < HASH_SIZE; i++){
 		entry *p = h->table[i];
 		while(p){

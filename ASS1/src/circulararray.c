@@ -6,22 +6,25 @@
 
 // used to be implemented with an array but now it is a linked list, oh well
 
+
 struct CircularArray{
-	int size;
-	struct Node *head;
-	char *temp;
-	int index;
+	int size;   // number of elements in the array
+	struct Node *head; // pointer to the first element in the array
+	char *temp; // temp buffer for storing input
+	int index; // index of the temp buffer
 };
 
-struct Node{
+struct Node{ // node of the linked list that would have been an array if it didn't annoy me
 	char data[MAX_INPUT_LENGTH];
 	struct Node *next;
 };
 typedef struct Node node;
 
+/* Inserts string at the start of the list, 
+if it surpasses the maximum items allowed to be kept in history it removes the oldest one */
 void circulararray_insert_at_start(circulararray *ca, char *data){
 
-	char *p = strstr(data, "myhistory");
+	char *p = strstr(data, "myhistory"); // don't save myhistory command
 	if(p) return;
 
 	node *new_node = malloc(sizeof(node));
@@ -29,6 +32,7 @@ void circulararray_insert_at_start(circulararray *ca, char *data){
 	new_node->next = ca->head;
 	ca->head = new_node;
 	ca->size++;
+
 	if(ca->size > HISTORY_SIZE){
 		node *p = ca->head;
 		while(p->next->next){
@@ -41,7 +45,10 @@ void circulararray_insert_at_start(circulararray *ca, char *data){
 
 }
 
+
+/* Memory allocation and loading of the data from the history file */
 circulararray *circulararray_create_and_init(){
+
 	circulararray *ca = malloc(sizeof(circulararray));
 	ca->temp = malloc(sizeof(char) * MAX_INPUT_LENGTH);
 	ca->size = 0;
@@ -57,6 +64,7 @@ circulararray *circulararray_create_and_init(){
 	if(!fptr){
 		return ca;
 	}
+
 	if(fscanf(fptr, "%d ", &entries) > 0){
 		for(int i = 0; i < entries; i++){
 			while((c = fgetc(fptr)) != '\n'){
@@ -72,8 +80,10 @@ circulararray *circulararray_create_and_init(){
 	return ca;
 }
 
-
+/* Deallocates memory allocated for this ADT, 
+also saves the history to a file for future use */
 void circulararray_destroy_and_save(circulararray *ca){
+
 	FILE *fptr;
 	char buf[MAX_INPUT_LENGTH];
 	snprintf(buf, sizeof(buf), "%s/.history", getenv("HOME"));
@@ -81,14 +91,15 @@ void circulararray_destroy_and_save(circulararray *ca){
 	if(!fptr){
 		return;
 	}
-	fprintf(fptr, "%d\n", ca->size);
+
+	fprintf(fptr, "%d\n", ca->size); // save the number of entries
 	node *p = ca->head;
 	while(p){
 		fprintf(fptr, "%s", p->data);
 		p = p->next;
 	}
 	fclose(fptr);
-	// free list 
+
 	p = ca->head;
 	while(p){
 		node *temp = p;
@@ -99,6 +110,7 @@ void circulararray_destroy_and_save(circulararray *ca){
 	free(ca);
 }
 
+/* Prints the history*/
 void circulararray_print(circulararray *ca){
 	int i = 0;
 	node *p = ca->head;
@@ -110,6 +122,8 @@ void circulararray_print(circulararray *ca){
 	
 }
 
+/* Gets a character and saves it to the buffer,
+once a line is terminated, it saves it in the actual list */
 void circulararray_add(circulararray *ca, char c){
 	ca->temp[ca->index++] = c;
 	if(c == '\n' || ca->index == MAX_INPUT_LENGTH-1){
@@ -120,6 +134,7 @@ void circulararray_add(circulararray *ca, char c){
 
 }
 
+/* Gets the string at the specified index */
 char *circulararray_get(circulararray *ca, int index){
 	int i = 0;
 	node *p = ca->head;
