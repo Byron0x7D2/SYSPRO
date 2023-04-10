@@ -9,6 +9,8 @@
 #include <fcntl.h>
 #include "../include/defines.h"
 #include "../include/hash.h"
+#include "../include/circulararray.h"
+#include "../include/parsing.h"
 
 
 void execute_cd(char **argv){
@@ -20,7 +22,7 @@ void execute_cd(char **argv){
 }
 
 
-pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end, hash *h){
+pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end, hash *h, circulararray *ca){
 
 	if(strcmp(argv[0], "cd") == 0){
 		execute_cd(argv);
@@ -38,6 +40,27 @@ pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_
 		if(argv[1]){
 			hash_delete(h, argv[1]);
 		}
+		return -1;
+	}
+
+	if(strcmp(argv[0], "myhistory") == 0){
+		if(argv[1]){
+			int n = atoi(argv[1]);
+			char *com = circulararray_get(ca, n);
+			if(com) {
+				char buf[MAX_INPUT_LENGTH];
+				snprintf(buf, sizeof(buf), "%s/.newinput", getenv("HOME"));
+				FILE *fptr = fopen(buf, "w+");
+				if(!fptr){
+					return -1;
+				}
+				fprintf(fptr, "%s", com);
+				fclose(fptr);
+				return -2;
+			}
+				
+		}
+		circulararray_print(ca);
 		return -1;
 	}
 

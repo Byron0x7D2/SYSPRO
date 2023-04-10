@@ -17,6 +17,7 @@
 #define MYERROR 9
 #define MYEXIT 10
 #define INQUOTE 11
+#define MYINPUT 12
 
 #define NEUTRAL 0
 #define INWORD 1

@@ -21,7 +21,7 @@ run: $(EXEC)
 	./$(EXEC) $(ARGS) 
 
 cleanall:  #update this to remove all files
-	@rm -f $(OBJS) $(EXEC) $(wildcard $(OUT)/*.txt) valgrind-out.txt /home/byron/.aliases /home/byron/.history
+	@rm -f $(OBJS) $(EXEC) $(wildcard $(OUT)/*.txt) valgrind-out.txt /home/byron/.aliases /home/byron/.history /home/byron/.newinput
 clean:
 	@rm -f $(OBJS) $(EXEC) 
 	

@@ -4,6 +4,8 @@
 #include "../include/circulararray.h"
 #include "../include/defines.h"
 
+// used to be implemented with an array but now it is a linked list, oh well
+
 struct CircularArray{
 	int size;
 	struct Node *head;
@@ -18,6 +20,10 @@ struct Node{
 typedef struct Node node;
 
 void circulararray_insert_at_start(circulararray *ca, char *data){
+
+	char *p = strstr(data, "myhistory");
+	if(p) return;
+
 	node *new_node = malloc(sizeof(node));
 	strcpy(new_node->data, data);
 	new_node->next = ca->head;
@@ -106,9 +112,8 @@ void circulararray_print(circulararray *ca){
 
 void circulararray_add(circulararray *ca, char c){
 	ca->temp[ca->index++] = c;
-	if(c == '\n'){
+	if(c == '\n' || ca->index == MAX_INPUT_LENGTH-1){
 		ca->temp[ca->index] = '\0';
-		// printf("adding %s", ca->temp);
 		circulararray_insert_at_start(ca, ca->temp);
 		ca->index = 0;
 	}

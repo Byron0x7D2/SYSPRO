@@ -11,6 +11,7 @@
 #include "../include/execute.h"
 #include <glob.h>
 #include "../include/hash.h"
+#include "../include/circulararray.h"
 
 
 void get_memory(char ***arguments, char **srcfile, char **destfile, char **word){
@@ -56,13 +57,14 @@ int store_char(char *word, int *characters, char c){
 
 
 
-int get_input_token(char *word){
+int get_input_token(char *word, circulararray *ca, FILE *fp){
 	char c;
 	int state = NEUTRAL, characters = 0;
 
-	while((c = getchar()) != EOF){
+	while((c = fgetc(fp)) != EOF){
 		switch (state){
 			case NEUTRAL:
+				circulararray_add(ca, c);
 				switch (c){
 					case ';':
 						return SEMI;
@@ -73,12 +75,13 @@ int get_input_token(char *word){
 					case '<':
 						return LT;
 					case '>':
-						c = getchar();
+						c = fgetc(fp);
 						switch (c){
 							case '>':
+								circulararray_add(ca, c);
 								return GTGT;
 							default:
-								ungetc(c, stdin);
+								ungetc(c, fp);
 								return GT;
 						}
 					case ' ':
@@ -101,20 +104,22 @@ int get_input_token(char *word){
 			case INWORD:
 				if(c != ' ' && c != '\t' && c != ';' && c != '&' && c != '|' && c != '<' && c != '>' && c != '\n'){
 					if(!store_char(word, &characters, c))return MYERROR;
+					circulararray_add(ca, c);
 					continue;
 				}
 				else{
-					ungetc(c, stdin);
+					ungetc(c, fp);
 					if(!store_char(word, &characters, '\0'))return MYERROR;
 					return WORD;
 				}
 			case INDOLLAR:
 				if(c != ' ' && c != '\t' && c != ';' && c != '&' && c != '|' && c != '<' && c != '>' && c != '\n'){
 					if(!store_char(word, &characters, c))return MYERROR;
+					circulararray_add(ca, c);
 					continue;
 				}
 				else{
-					ungetc(c, stdin);
+					ungetc(c, fp);
 					if(!store_char(word, &characters, '\0'))return MYERROR;
 					char *env = getenv(word);
 					if(!env){
@@ -126,6 +131,7 @@ int get_input_token(char *word){
 					return WORD;
 				}
 			case INQUOTE:
+				circulararray_add(ca, c);
 				if(c != '\"'){
 					if(!store_char(word, &characters, c))return MYERROR;
 					continue;
@@ -185,12 +191,12 @@ void aliases(char *word, hash *h, int *argc, char **argv){
 	free(copy);
 }
 
-int command(int force_read, int force_write, int other_end, pid_t *wait_pid, hash *h){
+int command(int force_read, int force_write, int other_end, pid_t *wait_pid, hash *h, circulararray *ca, FILE *fp){
 	char **argv=NULL, *srcfile=NULL, *destfile=NULL, *word=NULL;
 	get_memory(&argv, &srcfile, &destfile, &word);
 	int token, argc = 0, append = 0; 
 	while(1){
-		switch(token = get_input_token(word)){
+		switch(token = get_input_token(word, ca, fp)){
 			case WORD:
 
 				if(!argc){
@@ -216,14 +222,14 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 			case SEMI:
 				if(argc != 0){
 					argv[argc] = NULL;
-					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h);
+					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
 				}
 				free_memory(argv, srcfile, destfile, word);
 				return SEMI;
 			case AMP:
 				if(argc != 0){
 					argv[argc] = NULL;
-					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h);
+					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
 				}
 				free_memory(argv, srcfile, destfile, word);
 				return AMP;
@@ -235,7 +241,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 				}
 				argv[argc] = NULL;
 				int bpid, wpid, status;
-				bpid = execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ], h);
+				bpid = execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ], h, ca);
 				if(bpid > 0){
 					do{
 						wpid = waitpid(-1, &status, 0);
@@ -243,14 +249,14 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 				}
 				argc = 0;
 				free_memory(argv, srcfile, destfile, word);
-				return command(fd[READ],-1, fd[WRITE], wait_pid, h);
+				return command(fd[READ],-1, fd[WRITE], wait_pid, h, ca, fp);
 			case LT:
 				if(force_read != -1) {
 					fprintf(stderr, "Ambiguous input redirect");
 					free_memory(argv, srcfile, destfile, word);
 					return MYERROR;
 				}
-				if((token = get_input_token(word)) != WORD){
+				if((token = get_input_token(word, ca, fp)) != WORD){
 					fprintf(stderr, "No file name");
 					free_memory(argv, srcfile, destfile, word);
 					return MYERROR;
@@ -263,7 +269,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 					free_memory(argv, srcfile, destfile, word);
 					return MYERROR;
 				}
-				if((token = get_input_token(word)) != WORD){
+				if((token = get_input_token(word, ca, fp)) != WORD){
 					fprintf(stderr, "No file name");
 					free_memory(argv, srcfile, destfile, word);
 					return MYERROR;
@@ -276,7 +282,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 					free_memory(argv, srcfile, destfile, word);
 					return MYERROR;
 				}
-				if((token = get_input_token(word)) != WORD){
+				if((token = get_input_token(word, ca, fp)) != WORD){
 					fprintf(stderr, "No file name");
 					free_memory(argv, srcfile, destfile, word);
 					return MYERROR;
@@ -292,7 +298,11 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 						*wait_pid = -1;
 						return MYEXIT;
 					}
-					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h);
+					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
+					if(*wait_pid == -2){
+						free_memory(argv, srcfile, destfile, word);
+						return MYINPUT;
+					}
 				}
 				free_memory(argv, srcfile, destfile, word);
 				return NL;
