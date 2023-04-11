@@ -65,6 +65,7 @@ int main(int argc, char *argv[]){
 			do{
 				wpid = waitpid(-1, &status, 0); // wait for the child process to finish
 			}while(wpid != pid);
+			pid = -1;
 		}
 
 		if(last_status == MYINPUT){ // if the user typed myhistory, we need to open the file with the new input and replace the stdin

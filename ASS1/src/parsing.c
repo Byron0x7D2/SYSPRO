@@ -177,7 +177,7 @@ int get_input_token(char *word, circulararray *ca, FILE *fp){
 }
 
 /* Checks if word has wildcards and if it does it expands them */
-void wildcards(char *word){
+int wildcards(char *word, int *argc, char **argv){
 
 	int i = 0;
 	int check = 0;
@@ -195,46 +195,73 @@ void wildcards(char *word){
 		glob_t globbuf;
 		glob(word, 0, NULL, &globbuf);
 		word[0] = '\0';
-		for(int i = 0; i < globbuf.gl_pathc; i++){
-			strcat(word, globbuf.gl_pathv[i]);
-			strcat(word, " ");
+		for(int i = 0; i < globbuf.gl_pathc && i < MAX_WORD_LENGTH; i++){
+
+			if(*argc >= MAX_ARGUMENTS) {
+				fprintf(stderr, "Too many arguments");
+				return 1;
+			}
+			argv[*argc] = malloc(sizeof(char) * MAX_WORD_LENGTH);
+			if(!argv[*argc]){
+				perror("malloc");
+				return 0;
+			}
+			strcpy(argv[*argc], globbuf.gl_pathv[i]);
+			(*argc)++;
+
 		}
+		
 		globfree(&globbuf);
+		return 1;
 	}
+	return 0;
 }
 
 /* Checks if word is an alias and if it is it expands it */
-void aliases(char *word, hash *h, int *argc, char **argv){
+int aliases(char *word, hash *h){
 
+	int i;
 	char *alias = hash_lookup(h, word); // Check if word is an alias
 
 	if(!alias){ // Word is not an alias
-		return ;
+		return 0;
 	}
 
 	char *copy = malloc(sizeof(char) * MAX_WORD_LENGTH);
+	if(!copy){
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
 	strcpy(copy, alias); // Copy alias to copy string in order to not get destroyed by strtok
-	char *token = strtok(copy, "\" 	");
+	char *token = strtok(copy, "\"");
 
-	while(token){
-
-		if(*argc >= MAX_ARGUMENTS) {
-			fprintf(stderr, "Too many arguments");
-			return ;
+	if(token){
+		
+		char temp[MAX_WORD_LENGTH];
+		char buf[MAX_INPUT_LENGTH];  // write command to file so that it can be read by the main loop
+		snprintf(buf, sizeof(buf), "%s/.newinput", getenv("HOME"));
+		FILE *fptr = fopen(buf, "w+");
+		if(!fptr){
+			perror("fopen");
+			return 0;
 		}
 
-		argv[*argc] = malloc(sizeof(char) * MAX_WORD_LENGTH);
 
-		if(!argv[*argc]){
-			perror("malloc");
-			exit(EXIT_FAILURE);
+		for(i = 0; token[i]; i++){
+			temp[i] = token[i];
 		}
+		temp[i++] = '\n';
+		temp[i] = '\0';
 
-		strcpy(argv[*argc], token);
-		(*argc)++;
-		token = strtok(NULL, "\" 	");
+		fprintf(fptr, "%s", temp); // write command to file
+
+		fclose(fptr);
+		free(copy);
+		return 1;
+
 	}
 	free(copy);
+	return 0;
 }
 
 /* Main function for the inputs, basically each call is a command */
@@ -252,11 +279,17 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 			case WORD: // Word token, save it to argv
 
 				if(!argc){ // If it is the first word of the command check if it is an alias
-					aliases(word, h, &argc, argv);
+					if(aliases(word, h)){
+						get_input_token(word, ca, fp); // Get next token to get rid of newline
+						free_memory(argv, srcfile, destfile, word);
+
+						*wait_pid = -2;
+						return MYINPUT;
+					}
 					if(argc) break;
 				}
 
-				wildcards(word); // Check if word has wildcards and expand them
+				if(wildcards(word, &argc, argv)) break; // Check if word has wildcards and expand them
 
 				if(argc >= MAX_ARGUMENTS) {
 					fprintf(stderr, "Too many arguments");
@@ -389,7 +422,6 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 					}
 
 					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
-
 					if(*wait_pid == -2){ // This means my history command was called and now we will change the input stream to the file
 						free_memory(argv, srcfile, destfile, word);
 						return MYINPUT;

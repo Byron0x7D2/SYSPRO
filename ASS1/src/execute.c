@@ -136,7 +136,7 @@ pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_
 		exit(EXIT_FAILURE);
 
 	}else{ // parent
-		// close file descriptors
+		// close file descriptors	
 		if(fdsrc != STDIN_FILENO) close(fdsrc);
 		if(fddest != STDOUT_FILENO) close(fddest);
 	}
