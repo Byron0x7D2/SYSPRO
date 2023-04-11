@@ -243,6 +243,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 	char **argv=NULL, *srcfile=NULL, *destfile=NULL, *word=NULL;
 	get_memory(&argv, &srcfile, &destfile, &word);
 	int token, argc = 0, append = 0; 
+	int fd[2]; // Create pipe
 
 	while(1){ // Loop until we get a command to execute
 
@@ -299,7 +300,6 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 
 			case BAR: // Pipe token
  
-				int fd[2]; // Create pipe
 				if(pipe(fd) == -1){
 					perror("pipe");
 					exit(EXIT_FAILURE);

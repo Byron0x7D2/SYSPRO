@@ -13,6 +13,7 @@
 #include <signal.h>
 #include "../include/hash.h"
 #include "../include/circulararray.h"
+#include <stdio_ext.h>
 
 pid_t pid = -1; // global variable to denote the current process running, -1 means that there is no process running 
 
