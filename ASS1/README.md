@@ -95,7 +95,8 @@ Let's sturt with the ADT to keep the aliases. We have created a simple hash tabl
 
 ### **f) Signal handling**
 
-The instructions do not specify what to do with a signal if the parent process has no other processes created during the signal. So we decided that if a signal comes without a child process present, we `kill` the father using the default signal handler. If the father has a child process active, we catch the signal and pass it to the child whos pid we have kept.
+ - If the father has no child process, we do nothing. This means, that if you were about to type a command, you can still continue to do it.
+ - If the father has a child process active, we catch the signal and pass it to the child whos pid we have kept.
 
 ### **g) History support**
 

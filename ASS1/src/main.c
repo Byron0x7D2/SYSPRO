@@ -22,8 +22,7 @@ if there is not one, the father kills himself */
 void catch_sigint(){
 	if(pid > 0) kill(pid, SIGINT);
 	else{
-		signal(SIGINT, SIG_DFL);
-		kill(getpid(), SIGINT);
+		signal(SIGINT, catch_sigint);
 	}
 }
 
@@ -33,8 +32,7 @@ void catch_sigtstp(){
 		pid = -1; // stop waiting for this process to finish
 		kill(pid, SIGTSTP); 
 	}else{
-		signal(SIGTSTP, SIG_DFL);
-		kill(getpid(), SIGTSTP);
+		signal(SIGTSTP, catch_sigtstp);
 	}
 }
 
