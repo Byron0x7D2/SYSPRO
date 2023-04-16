@@ -25,7 +25,7 @@ void execute_cd(char **argv){
 
 /* Executes the executable stored in argv[0],
 or if it is a special input, does that */
-pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end, hash *h, circulararray *ca){
+pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end, hash *h, circulararray *ca,int cl){
 
 	if(strcmp(argv[0], "cd") == 0){ // cd, call execute_cd
 		execute_cd(argv);
@@ -110,24 +110,24 @@ pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_
 
 	if(pid == 0){ // child
 
-		if(fdsrc != STDIN_FILENO){  // manage redirection
-			if(other_end != -1) close(other_end);
+		if(fdsrc != STDIN_FILENO){  // manage redirection	
 			close(STDIN_FILENO);
 			if(dup2(fdsrc, STDIN_FILENO) == -1){
 				perror("dup2");
 				exit(EXIT_FAILURE);
 			}
 			close(fdsrc);
+			
 		}
 
 		if(fddest != STDOUT_FILENO){
-			if(other_end != -1) close(other_end);
 			close(STDOUT_FILENO);
 			if(dup2(fddest, STDOUT_FILENO) == -1){
 				perror("dup2");
 				exit(EXIT_FAILURE);
 			}
 			close(fddest);
+			
 		}
 
 		execvp(argv[0], argv); // execute

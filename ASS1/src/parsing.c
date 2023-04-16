@@ -339,14 +339,8 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 				}
 
 				argv[argc] = NULL;
-				int bpid, wpid, status;
-				bpid = execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ], h, ca);
+				*wait_pid = execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ], h, ca);
 
-				if(bpid > 0){ // Wait for process to finish
-					do{
-						wpid = waitpid(-1, &status, 0);
-					}while(wpid != bpid);
-				}
 
 				argc = 0;
 				free_memory(argv, srcfile, destfile, word);
