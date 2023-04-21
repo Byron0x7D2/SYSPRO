@@ -82,54 +82,38 @@ int get_input_token(char *word, circulararray *ca, FILE *fp){
 			case NEUTRAL: // Neutral state, no special character found
 
 				circulararray_add(ca, c); // Add character to circular array for history keeping
-				switch (c){
 
-					case ';':
-						return SEMI;
+				if(c == ' ' || c == '\t') continue;
 
-					case '&':
-						return AMP;
+				if(c == ';' || c == '&' || c == '|' || c == '<' || c == '\n') return c;
+				
+				if(c == '>'){
 
-					case '|':
-						return BAR;
+					c = fgetc(fp); // Check if next character is also >
 
-					case '<':
-						return LT;
-
-					case '>':
-						c = fgetc(fp); // Check if next character is also >
-						switch (c){
-							case '>':
-								circulararray_add(ca, c);
-								return GTGT;
-							default:
-								ungetc(c, fp);
-								return GT;
-						}
-
-					case ' ':
-						continue;
-
-					case '\t':
-						continue;
-
-					case '\n':
-						return NL;
-
-					case '$':
-						state = INDOLLAR;
-						continue;
-
-					case '\"':
-						state = INQUOTE;
-						continue;
-
-					default:
-						state = INWORD;
-						if(!store_char(word, &characters, c))return MYERROR;
-						continue;
-			
+					if(c == '>'){
+						circulararray_add(ca, c);
+						return GTGT;
+					}else{
+						ungetc(c, fp);
+						return GT;
+					}
 				}
+
+				if(c == '$') { 
+					state = INDOLLAR;
+					continue;
+				}
+
+				if(c == '\"'){
+					state = INQUOTE;
+					continue;
+				}
+
+				state = INWORD;
+				if(!store_char(word, &characters, c))return MYERROR; // keep the character
+				continue;
+
 			case INWORD: // Word state, found a word and saving it whole
 
 				if(c != ' ' && c != '\t' && c != ';' && c != '&' && c != '|' && c != '<' && c != '>' && c != '\n'){

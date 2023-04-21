@@ -38,7 +38,7 @@ pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_
 
 			hash_insert(h, argv[1], argv[2]);
 		}
-		return -1;
+		return -1; 
 	}
 
 	if(strcmp(argv[0], "destroyalias") == 0){ // destroyalias, deletes alias
@@ -89,6 +89,7 @@ pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_
 			exit(EXIT_FAILURE);
 		}
 	}
+	
 	int fddest = STDOUT_FILENO; 
 	if(force_write != -1) fddest = force_write;
 	else if(destfile[0]){

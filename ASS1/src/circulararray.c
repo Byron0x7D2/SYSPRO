@@ -112,8 +112,10 @@ void circulararray_destroy_and_save(circulararray *ca){
 
 /* Prints the history*/
 void circulararray_print(circulararray *ca){
+
 	int i = 0;
 	node *p = ca->head;
+
 	while(p){
 		printf("%d: %s",i, p->data);
 		p = p->next;
@@ -125,6 +127,7 @@ void circulararray_print(circulararray *ca){
 /* Gets a character and saves it to the buffer,
 once a line is terminated, it saves it in the actual list */
 void circulararray_add(circulararray *ca, char c){
+
 	ca->temp[ca->index++] = c;
 	if(c == '\n' || ca->index == MAX_INPUT_LENGTH-1){
 		ca->temp[ca->index] = '\0';
@@ -136,8 +139,10 @@ void circulararray_add(circulararray *ca, char c){
 
 /* Gets the string at the specified index */
 char *circulararray_get(circulararray *ca, int index){
+
 	int i = 0;
 	node *p = ca->head;
+	
 	while(p){
 		if(i == index){
 			return p->data;

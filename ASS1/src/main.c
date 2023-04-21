@@ -51,13 +51,13 @@ int main(int argc, char *argv[]){
  
 	while(1){	// untill the user types rip
 
-		if(last_status == NL){
+		if(last_status == NL){  //printing the prompt only when we finish with a line
 			printf("in-mysh-now:>");
 			if(input != stdin) fclose(input);
 			input = stdin;
 		}
 
-		last_status = command(-1,-1, -1, &pid, h, ca, input);
+		last_status = command(-1,-1, -1, &pid, h, ca, input); // get a command and execute it
 
 		if(last_status != AMP && pid > 0){
 			do{

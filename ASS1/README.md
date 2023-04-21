@@ -38,6 +38,12 @@ Every time the `command` function is called it also starts a loop where it gets 
 	- Same as before but reads until it finds the other end of the parentheses.
 
 The command function works the following way:
+ - It takes the following arguments:
+	- force_read, force_write, other_end: pipe ends for the next command to use in the recursion
+	- wait_pid: pid of the last executed process, so we canhave access to it for signals and to wait for it if necessary
+	- h: aliases ADT
+	- ca: history ADT
+	- fp: file we get input from, can either be stdin or a file that contains the next command to be executed
  - If it gets a Word:
 	- If it is the first word it received in this command, it checks if it is an alias, then it checks for wildcards inside the word. Last, it allocates memory and puts it in the argv array.
  - If it gets a Semicolumn:
@@ -62,6 +68,15 @@ The command function works the following way:
 	- We inform main and do nothing.
 
 During the execution phase the following happen:
+ - The `execute` function takes the following arguments:
+	- argv: in argv[0] is the name of the executable and in the latter places are the command line arguments
+	- srcfile: file to replace stdin
+	- destfile: file to replace stdout
+	- append: boolean if we are to append to the destination file
+	- force_read, force_write: pipe ends that we force the input or output to be redirected
+	- other_end: other end of the pipe in the previus arguments
+	- h: hash table ADT for aliases
+	- ca: list ADT for history keeping
  - If we get `cd`, we use `chdir` to update the path.
  - Special treatement for alias and myHistory that will be analyzed later.
  - Updates the input or output streams according to its command line arguments using the `dup2` function.

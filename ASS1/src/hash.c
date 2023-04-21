@@ -75,8 +75,10 @@ hash *hash_create_and_init(){
 /* Checks if the key exists in the hash table, 
 if yes it returns its value */
 char *hash_lookup(hash *h, char *key){
+
 	int index = hashfun(key);
 	entry *p = h->table[index];
+
 	while(p){
 		if(strcmp(p->key, key) == 0){
 			return p->value;
@@ -88,17 +90,22 @@ char *hash_lookup(hash *h, char *key){
 
 /* Deletes the entry from the hash table */
 void hash_delete(hash *h, char *key){
+
 	int index = hashfun(key);
 	entry *p = h->table[index];
 	entry *prev = NULL;
+
 	while(p){
+
 		if(strcmp(p->key, key) == 0){
+
 			if(prev) prev->next = p->next;
 			else h->table[index] = p->next;
 			h->entries--;
 			free(p);
 			return;
 		}
+
 		prev = p;
 		p = p->next;
 	}
@@ -106,13 +113,17 @@ void hash_delete(hash *h, char *key){
 
 /* Inserts a new entry in the hash table */
 void hash_insert(hash *h, char *key, char *value){
-	if(hash_lookup(h,key)) return;
+
+	if(hash_lookup(h,key)) return; // no two entries with the same key
 	h->entries++;
 	int index = hashfun(key);
+
 	entry *e = malloc(sizeof(entry));
 	strcpy(e->key, key);
 	strcpy(e->value, value);
+	
 	entry *p = h->table[index];
+
 	if(!p){
 		h->table[index] = e;
 		e->next = NULL;
