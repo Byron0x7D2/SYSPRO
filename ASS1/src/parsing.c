@@ -77,84 +77,82 @@ int get_input_token(char *word, circulararray *ca, FILE *fp){
 
 	while((c = fgetc(fp)) != EOF){
 
-		switch (state){
+		if(state == NEUTRAL){
 
-			case NEUTRAL: // Neutral state, no special character found
+			circulararray_add(ca, c); // Add character to circular array for history keeping
 
-				circulararray_add(ca, c); // Add character to circular array for history keeping
+			if(c == ' ' || c == '\t') continue;
 
-				if(c == ' ' || c == '\t') continue;
-
-				if(c == ';' || c == '&' || c == '|' || c == '<' || c == '\n') return c;
+			if(c == ';' || c == '&' || c == '|' || c == '<' || c == '\n') return c;
 				
+			if(c == '>'){
+				
+				c = fgetc(fp); // Check if next character is also >
+
 				if(c == '>'){
-
-					c = fgetc(fp); // Check if next character is also >
-
-					if(c == '>'){
-						circulararray_add(ca, c);
-						return GTGT;
-					}else{
-						ungetc(c, fp);
-						return GT;
-					}
+					circulararray_add(ca, c);
+					return GTGT;
+				}else{
+					ungetc(c, fp);
+					return GT;
 				}
+			}
 
-				if(c == '$') { 
-					state = INDOLLAR;
-					continue;
-				}
-
-				if(c == '\"'){
-					state = INQUOTE;
-					continue;
-				}
-
-				state = INWORD;
-				if(!store_char(word, &characters, c))return MYERROR; // keep the character
+			if(c == '$') { 
+				state = INDOLLAR;
 				continue;
+			}
 
-			case INWORD: // Word state, found a word and saving it whole
+			if(c == '\"'){
+				state = INQUOTE;
+				continue;
+			}
 
-				if(c != ' ' && c != '\t' && c != ';' && c != '&' && c != '|' && c != '<' && c != '>' && c != '\n'){
-					if(!store_char(word, &characters, c))return MYERROR;
-					circulararray_add(ca, c);
-					continue;
-				}else{
-					ungetc(c, fp);
-					if(!store_char(word, &characters, '\0'))return MYERROR;
-					return WORD;
-				}
+			state = INWORD;
+			if(!store_char(word, &characters, c))return MYERROR; // keep the character
+			continue;
 
-			case INDOLLAR: // Dollar state, found a $ and saving the environment variable
+		}else if(state == INWORD){ // Word state, found a word and saving it whole
 
-				if(c != ' ' && c != '\t' && c != ';' && c != '&' && c != '|' && c != '<' && c != '>' && c != '\n'){
-					if(!store_char(word, &characters, c))return MYERROR;
-					circulararray_add(ca, c);
-					continue;
-				}else{
-					ungetc(c, fp);
-					if(!store_char(word, &characters, '\0'))return MYERROR;
-					char *env = getenv(word); // Get environment variable
-					if(!env){
-						fprintf(stderr, "No such environment variable");
-						return MYERROR;
-					}
-					word[0] = '\0';
-					strcpy(word, env);
-					return WORD;
-				}
-
-			case INQUOTE: // Quote state, found a " and saving the word inside the quotes
-
+			if(c != ' ' && c != '\t' && c != ';' && c != '&' && c != '|' && c != '<' && c != '>' && c != '\n'){
+				if(!store_char(word, &characters, c))return MYERROR;
 				circulararray_add(ca, c);
-				if(c != '\"'){
-					if(!store_char(word, &characters, c))return MYERROR;
-					continue;
-				}else{
-					if(!store_char(word, &characters, '\0'))return MYERROR;
-					return WORD;
+				continue;
+			}else{
+				ungetc(c, fp);
+				if(!store_char(word, &characters, '\0'))return MYERROR;
+				return WORD;
+			}
+
+		}else if(state ==  INDOLLAR){ // Dollar state, found a $ and saving the environment variable
+
+			if(c != ' ' && c != '\t' && c != ';' && c != '&' && c != '|' && c != '<' && c != '>' && c != '\n'){
+				if(!store_char(word, &characters, c))return MYERROR;
+				circulararray_add(ca, c);
+				continue;
+			}else{
+				ungetc(c, fp);
+				if(!store_char(word, &characters, '\0'))return MYERROR;
+				char *env = getenv(word); // Get environment variable
+				if(!env){
+					fprintf(stderr, "No such environment variable");
+					return MYERROR;
 				}
+				word[0] = '\0';
+				strcpy(word, env);
+				return WORD;
+			}
+
+		}else if(state ==  INQUOTE){ // Quote state, found a " and saving the word inside the quotes
+
+			circulararray_add(ca, c);
+			if(c != '\"'){
+				if(!store_char(word, &characters, c))return MYERROR;
+				continue;
+			}else{
+				if(!store_char(word, &characters, '\0'))return MYERROR;
+				return WORD;
+			}
 		}
 	}
 	return MYERROR;
@@ -258,161 +256,137 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, has
 
 	while(1){ // Loop until we get a command to execute
 
-		switch(token = get_input_token(word, ca, fp)){ // Get token
+		token = get_input_token(word, ca, fp); // Get token
 
-			case WORD: // Word token, save it to argv
+		if(token == WORD){
 
-				if(!argc){ // If it is the first word of the command check if it is an alias
-					if(aliases(word, h)){
-						get_input_token(word, ca, fp); // Get next token to get rid of newline
-						free_memory(argv, srcfile, destfile, word);
-
-						*wait_pid = -2;
-						return MYINPUT;
-					}
-					if(argc) break;
-				}
-
-				if(wildcards(word, &argc, argv)) break; // Check if word has wildcards and expand them
-
-				if(argc >= MAX_ARGUMENTS) {
-					fprintf(stderr, "Too many arguments");
+			if(!argc){ // If it is the first word of the command check if it is an alias
+				if(aliases(word, h)){
+					get_input_token(word, ca, fp); // Get next token to get rid of newline
 					free_memory(argv, srcfile, destfile, word);
-					return MYERROR;
+
+					*wait_pid = -2;
+					return MYINPUT;
 				}
+				if(argc) continue;
+			}
 
-				argv[argc] = malloc(sizeof(char) * MAX_WORD_LENGTH); // Save word to argv
+			if(wildcards(word, &argc, argv)) continue; // Check if word has wildcards and expand them
 
-				if(!argv[argc]){
-					perror("malloc");
-					exit(EXIT_FAILURE);
-				}	
-
-				strcpy(argv[argc], word);
-				argc++;
-
-				break;
-
-			case SEMI: // Semicolon token, execute command and return
-
-				if(argc != 0){
-					argv[argc] = NULL;
-					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
-				}
-
-				free_memory(argv, srcfile, destfile, word);
-
-				return SEMI; // this will make sure main won't print and will go to the next command from the same input
-
-			case AMP: // Ampersand token, execute command and return
-
-				if(argc != 0){
-					argv[argc] = NULL;
-					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
-				}
-
-				free_memory(argv, srcfile, destfile, word);
-
-				return AMP; // this will make sure main won't wait for a process to finish
-
-			case BAR: // Pipe token
- 
-				if(pipe(fd) == -1){
-					perror("pipe");
-					exit(EXIT_FAILURE);
-				}
-
-				argv[argc] = NULL;
-				*wait_pid = execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ], h, ca);
-
-
-				argc = 0;
-				free_memory(argv, srcfile, destfile, word);
-
-				return command(fd[READ],-1, fd[WRITE], wait_pid, h, ca, fp); // Call command again to get the next command with input the output of the previous command
-
-			case LT: // Input redirect token
-
-				if(force_read != -1) { // Check if there is already an input redirect
-					fprintf(stderr, "Ambiguous input redirect");
-					free_memory(argv, srcfile, destfile, word);
-					return MYERROR;
-				}
-
-				// Get file name
-				if((token = get_input_token(word, ca, fp)) != WORD){
-					fprintf(stderr, "No file name");
-					free_memory(argv, srcfile, destfile, word);
-					return MYERROR;
-				}
-
-				strcpy(srcfile, word);
-
-				continue;
-
-			case GT: // Output redirect token
-
-				if(force_write != -1) {
-					fprintf(stderr, "Ambiguous output redirect");
-					free_memory(argv, srcfile, destfile, word);
-					return MYERROR;
-				}
-
-				if((token = get_input_token(word, ca, fp)) != WORD){
-					fprintf(stderr, "No file name");
-					free_memory(argv, srcfile, destfile, word);
-					return MYERROR;
-				}
-
-				strcpy(destfile, word);
-
-				continue;
-
-			case GTGT: // Append redirect token
-
-				if(force_write != -1) {
-					fprintf(stderr, "Ambiguous output redirect");
-					free_memory(argv, srcfile, destfile, word);
-					return MYERROR;
-				}
-
-				if((token = get_input_token(word, ca, fp)) != WORD){
-					fprintf(stderr, "No file name");
-					free_memory(argv, srcfile, destfile, word);
-					return MYERROR;
-				}
-
-				strcpy(destfile, word);
-
-				append = 1;
-
-				continue;
-
-			case NL: 	// New line token, execute command and return
-
-				if(argc != 0){
-					argv[argc] = NULL;
-
-					if(!strcmp(argv[0], "rip")) { // Check if command is rip 
-						free_memory(argv, srcfile, destfile, word);
-						*wait_pid = -1;
-						return MYEXIT;
-					}
-
-					*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
-					if(*wait_pid == -2){ // This means my history command was called and now we will change the input stream to the file
-						free_memory(argv, srcfile, destfile, word);
-						return MYINPUT;
-					}
-
-				}
-
-				free_memory(argv, srcfile, destfile, word);
-				return NL;
-
-			case MYERROR: // Error token, free memory and return
+			if(argc >= MAX_ARGUMENTS) {
+				fprintf(stderr, "Too many arguments");
 				free_memory(argv, srcfile, destfile, word);
 				return MYERROR;
+			}
+
+			argv[argc] = malloc(sizeof(char) * MAX_WORD_LENGTH); // Save word to argv
+
+			if(!argv[argc]){
+				perror("malloc");
+				exit(EXIT_FAILURE);
+			}	
+
+			strcpy(argv[argc], word);
+			argc++;
+
+		}
+
+		if(token == SEMI || token == AMP){
+
+			if(argc != 0){
+				argv[argc] = NULL;
+				*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
+			}
+
+			free_memory(argv, srcfile, destfile, word);
+
+			return token; // this will make sure main won't print and will go to the next command from the same input
+		}
+		
+		if(token == BAR){
+
+			if(pipe(fd) == -1){
+				perror("pipe");
+				exit(EXIT_FAILURE);
+			}
+
+			argv[argc] = NULL;
+			*wait_pid = execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ], h, ca);
+
+
+			argc = 0;
+			free_memory(argv, srcfile, destfile, word);
+
+			return command(fd[READ],-1, fd[WRITE], wait_pid, h, ca, fp); // Call command again to get the next command with input the output of the previous command
+		}
+
+		if(token == LT){
+
+			if(force_read != -1) { // Check if there is already an input redirect
+				fprintf(stderr, "Ambiguous input redirect");
+				free_memory(argv, srcfile, destfile, word);
+				return MYERROR;
+			}
+
+			// Get file name
+			if((token = get_input_token(word, ca, fp)) != WORD){
+				fprintf(stderr, "No file name");
+				free_memory(argv, srcfile, destfile, word);
+				return MYERROR;
+			}
+
+			strcpy(srcfile, word);
+
+			continue;
+		}
+
+		if(token == GT || token == GTGT){
+
+			if(token == GTGT) append = 1; 
+
+			if(force_write != -1) {
+				fprintf(stderr, "Ambiguous output redirect");
+				free_memory(argv, srcfile, destfile, word);
+				return MYERROR;
+			}
+
+			if((token = get_input_token(word, ca, fp)) != WORD){
+				fprintf(stderr, "No file name");
+				free_memory(argv, srcfile, destfile, word);
+				return MYERROR;
+			}
+
+			strcpy(destfile, word);
+
+			continue;
+		}
+
+		if(token == NL){
+
+			if(argc != 0){
+				argv[argc] = NULL;
+
+				if(!strcmp(argv[0], "rip")) { // Check if command is rip 
+					free_memory(argv, srcfile, destfile, word);
+					*wait_pid = -1;
+					return MYEXIT;
+				}
+
+				*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
+				if(*wait_pid == -2){ // This means my history command was called and now we will change the input stream to the file
+					free_memory(argv, srcfile, destfile, word);
+					return MYINPUT;
+				}
+
+			}
+
+			free_memory(argv, srcfile, destfile, word);
+			return NL;
+		}
+
+		if(token == MYERROR){
+			free_memory(argv, srcfile, destfile, word);
+			return MYERROR;
 		}
 	}
 
