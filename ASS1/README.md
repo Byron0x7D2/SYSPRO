@@ -37,6 +37,7 @@ Every time the `command` function is called it also starts a loop where it gets 
  - In the Inquote state:
 	- Same as before but reads until it finds the other end of the parentheses.
 
+
 The command function works the following way:
  - It takes the following arguments:
 	- force_read, force_write, other_end: pipe ends for the next command to use in the recursion
