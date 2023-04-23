@@ -16,6 +16,7 @@
 #include <stdio_ext.h>
 
 pid_t pid = -1; // global variable to denote the current process running, -1 means that there is no process running 
+int active = 0;
 
 /* Catch cntl C signal and send it to child process, 
 if there is not one, the father kills himself */
@@ -57,12 +58,13 @@ int main(int argc, char *argv[]){
 			input = stdin;
 		}
 
-		last_status = command(-1,-1, -1, &pid, h, ca, input); // get a command and execute it
+		last_status = command(-1,-1, -1, &pid, &active, h, ca, input); // get a command and execute it
 
 		if(last_status != AMP && pid > 0){
 			do{
 				wpid = waitpid(-1, &status, 0); // wait for the child process to finish
-			}while(wpid != pid);
+				active--;
+			}while(wpid != pid && pid > 0);
 			pid = -1;
 		}
 
@@ -77,6 +79,11 @@ int main(int argc, char *argv[]){
 		}
 
 		if(last_status == MYEXIT) break;
+	}
+
+	while(active > 0){
+		wpid = waitpid(-1, &status, 0); // wait for the child process to finish
+		active--;
 	}
 
 	circulararray_destroy_and_save(ca); // destroy the ADTs
