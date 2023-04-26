@@ -75,7 +75,7 @@ int main(int argc, char *argv[]){
 
 		last_status = command(-1,-1, -1, &pid, h, ca, input); // get a command and execute it
 
-		if(last_status != AMP && pid > 0){
+		while(last_status != AMP && pid > 0){
 			pause(); // pause until a child finishes or is interrupted
 		}
 
