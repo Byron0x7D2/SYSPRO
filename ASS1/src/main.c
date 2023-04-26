@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/resource.h>
 #include <fcntl.h>
 #include "../include/defines.h"
 #include "../include/parsing.h"
@@ -14,9 +15,9 @@
 #include "../include/hash.h"
 #include "../include/circulararray.h"
 #include <stdio_ext.h>
+#include <unistd.h>
 
 pid_t pid = -1; // global variable to denote the current process running, -1 means that there is no process running 
-int active = 0;
 
 /* Catch cntl C signal and send it to child process, 
 if there is not one, the father kills himself */
@@ -30,22 +31,32 @@ void catch_sigint(){
 /* Catch cntrl Z signal, same as before */
 void catch_sigtstp(){
 	if(pid > 0){ 
-		pid = -1; // stop waiting for this process to finish
 		kill(pid, SIGTSTP); 
+		bg = pid;
+		pid = -1;
 	}else{
 		signal(SIGTSTP, catch_sigtstp);
 	}
 }
 
+void catch_sigchld(){
+	pid_t wpid;
+	int status;
+	signal(SIGCHLD, catch_sigchld);
+	wpid = waitpid(-1, &status, WNOHANG); // wait for the child process to finish
+	if(wpid == pid) pid = -1;
+}
+
+
 int main(int argc, char *argv[]){
 
 	FILE *input = stdin;
 	int last_status = NL;
-	int status;
-	pid_t wpid;
+
 
 	signal(SIGINT, catch_sigint); //signal handlers
 	signal(SIGTSTP, catch_sigtstp);
+	signal(SIGCHLD, catch_sigchld);
 
 	hash *h = hash_create_and_init(); //ADT initializations for aliases and history
 	circulararray *ca = circulararray_create_and_init();
@@ -58,14 +69,10 @@ int main(int argc, char *argv[]){
 			input = stdin;
 		}
 
-		last_status = command(-1,-1, -1, &pid, &active, h, ca, input); // get a command and execute it
+		last_status = command(-1,-1, -1, &pid, h, ca, input); // get a command and execute it
 
 		if(last_status != AMP && pid > 0){
-			do{
-				wpid = waitpid(-1, &status, 0); // wait for the child process to finish
-				active--;
-			}while(wpid != pid && pid > 0);
-			pid = -1;
+			pause();
 		}
 
 		if(last_status == MYINPUT){ // if the user typed myhistory, we need to open the file with the new input and replace the stdin
@@ -81,10 +88,6 @@ int main(int argc, char *argv[]){
 		if(last_status == MYEXIT) break;
 	}
 
-	while(active > 0){
-		wpid = waitpid(-1, &status, 0); // wait for the child process to finish
-		active--;
-	}
 
 	circulararray_destroy_and_save(ca); // destroy the ADTs
 	hash_destroy_and_save(h);

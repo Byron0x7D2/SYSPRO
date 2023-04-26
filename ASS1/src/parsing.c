@@ -247,7 +247,7 @@ int aliases(char *word, hash *h){
 }
 
 /* Main function for the inputs, basically each call is a command */
-int command(int force_read, int force_write, int other_end, pid_t *wait_pid, int *active, hash *h, circulararray *ca, FILE *fp){
+int command(int force_read, int force_write, int other_end, pid_t *wait_pid,  hash *h, circulararray *ca, FILE *fp){
 
 	char **argv=NULL, *srcfile=NULL, *destfile=NULL, *word=NULL;
 	get_memory(&argv, &srcfile, &destfile, &word);
@@ -296,7 +296,6 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, int
 			if(argc != 0){
 				argv[argc] = NULL;
 				*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
-				if(*wait_pid > 0) (*active)++;
 				if(token == AMP) *wait_pid = -1;
 			}
 
@@ -314,13 +313,11 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, int
 
 			argv[argc] = NULL;
 			*wait_pid = execute(argv, srcfile, destfile, append, force_read, fd[WRITE], fd[READ], h, ca);
-			if(*wait_pid > 0) (*active)++;
-
 
 			argc = 0;
 			free_memory(argv, srcfile, destfile, word);
 
-			return command(fd[READ],-1, fd[WRITE], wait_pid, active,  h, ca, fp); // Call command again to get the next command with input the output of the previous command
+			return command(fd[READ],-1, fd[WRITE], wait_pid,  h, ca, fp); // Call command again to get the next command with input the output of the previous command
 		}
 
 		if(token == LT){
@@ -368,7 +365,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, int
 				}
 
 				*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
-				if(*wait_pid > 0) (*active)++;
+
 				if(*wait_pid == -2){ // This means my history command was called and now we will change the input stream to the file
 					free_memory(argv, srcfile, destfile, word);
 					return MYINPUT;

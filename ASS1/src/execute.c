@@ -11,6 +11,7 @@
 #include "../include/hash.h"
 #include "../include/circulararray.h"
 #include "../include/parsing.h"
+#include <signal.h>
 
 /* Directory change,
  having finished with everything one would imagine I would just put it in the execute function body but I'm not gonna do it, not sure why */
@@ -26,6 +27,14 @@ void execute_cd(char **argv){
 /* Executes the executable stored in argv[0],
 or if it is a special input, does that */
 pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end, hash *h, circulararray *ca){
+
+	if(strcmp(argv[0], "fg") == 0){
+		pid_t temp;
+		if(bg > 0) kill(bg, SIGCONT);
+		temp = bg;
+		bg = -1;
+		return temp;
+	}
 
 	if(strcmp(argv[0], "cd") == 0){ // cd, call execute_cd
 		execute_cd(argv);
