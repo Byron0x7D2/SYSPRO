@@ -297,6 +297,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, int
 				argv[argc] = NULL;
 				*wait_pid = execute(argv, srcfile, destfile, append, force_read, force_write, other_end, h, ca);
 				if(*wait_pid > 0) (*active)++;
+				if(token == AMP) *wait_pid = -1;
 			}
 
 			free_memory(argv, srcfile, destfile, word);
@@ -331,11 +332,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, int
 			}
 
 			// Get file name
-			if((token = get_input_token(word, ca, fp)) != WORD){
-				fprintf(stderr, "No file name");
-				free_memory(argv, srcfile, destfile, word);
-				return MYERROR;
-			}
+			while((token = get_input_token(word, ca, fp)) != WORD);
 
 			strcpy(srcfile, word);
 
@@ -352,11 +349,7 @@ int command(int force_read, int force_write, int other_end, pid_t *wait_pid, int
 				return MYERROR;
 			}
 
-			if((token = get_input_token(word, ca, fp)) != WORD){
-				fprintf(stderr, "No file name");
-				free_memory(argv, srcfile, destfile, word);
-				return MYERROR;
-			}
+			while((token = get_input_token(word, ca, fp)) != WORD);
 
 			strcpy(destfile, word);
 
