@@ -18,6 +18,8 @@
 #include <unistd.h>
 
 pid_t pid = -1; // global variable to denote the current process running, -1 means that there is no process running 
+pid_t bg;
+
 
 /* Catch cntl C signal and send it to child process, 
 if there is not one, the father kills himself */

@@ -32,4 +32,5 @@
 #define WRITE 1
 
 
-pid_t bg;
+extern pid_t bg;
+
