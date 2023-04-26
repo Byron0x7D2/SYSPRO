@@ -39,6 +39,7 @@ void catch_sigtstp(){
 	}
 }
 
+/* Catch dead children */
 void catch_sigchld(){
 	pid_t wpid;
 	int status;
