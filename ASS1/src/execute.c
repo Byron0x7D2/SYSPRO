@@ -28,7 +28,7 @@ void execute_cd(char **argv){
 or if it is a special input, does that */
 pid_t execute(char **argv, char *srcfile, char *destfile, int append, int force_read, int force_write, int other_end, hash *h, circulararray *ca){
 
-	if(strcmp(argv[0], "fg") == 0){
+	if(strcmp(argv[0], "fg") == 0){ //fg, bring back last stopped process
 		pid_t temp;
 		if(bg > 0) kill(bg, SIGCONT);
 		temp = bg;

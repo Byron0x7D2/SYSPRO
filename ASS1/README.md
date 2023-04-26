@@ -80,13 +80,14 @@ During the execution phase the following happen:
 	- ca: list ADT for history keeping
  - If we get `cd`, we use `chdir` to update the path.
  - Special treatement for alias and myHistory that will be analyzed later.
+ - If we get a `fg` command we resume the stopped process, up to one each time since it is not in the instructions.
  - Updates the input or output streams according to its command line arguments using the `dup2` function.
  - Forks for the child process.
  - Returns the pid of the created process for main to wait for it to end if it has to or -1 of there is nothing to wait. -2 is a special case for myhistory so main changes the input stream.
 
 ### **a) Redirection support**
 
-When we find a redirection token, we continue reading in order to get the input or output file and we update the `srcfile` or `destfile` string. If we get the append token, we also make true the `append` variable. Once time comes for execution, If there is a string written in the above mentioned strings, we open the file thei give the path to and get their file descriptors. If the `fdsrc` or `fddest` file descriptors have been altered by their original stdin or stdout file descriptors, we use `dup2` to redirect the standard input or output there. We also close any file descrtiptors that are not necessary. 
+When we find a redirection token, we continue reading in order to get the input or output file and we update the `srcfile` or `destfile` string. If we get the append token, we also make true the `append` variable. Once time comes for execution, If there is a string written in the above mentioned strings, we open the file given by the path to and get their file descriptors. If the `fdsrc` or `fddest` file descriptors have been altered by their original stdin or stdout file descriptors, we use `dup2` to redirect the standard input or output there. We also close any file descrtiptors that are not necessary. 
 
 ### **b)Pipes support**
 
@@ -113,7 +114,12 @@ Let's sturt with the ADT to keep the aliases. We have created a simple hash tabl
 
  - If the father has no child process, we do nothing. This means, that if you were about to type a command, you can still continue to do it.
  - If the father has a child process active, we catch the signal and pass it to the child whose pid we have kept.
+ - Up to one stopped process at a time can be resumed with fg. 
+ - After the interrupt the shell throws a new prompt or continues execution.
 
 ### **g) History support**
 
 Like the aliases, we also have created an ADT to keep the history. It started as an array but ended up being a list, tho we decided not to change the name since it's a black box, who cares how it is impomplemented. For the history we keep the 20 most recent commands excluding the myhistory commands. Each time we read a character we save it to the ADT. If during reading we enclunter a new line, we move to the next slot in history. Calling history without args, prints the last 20 commands during this or previus exicutions. If it is followed by a number it immediately executes the command.
+
+
+## More details in the comments of the code.

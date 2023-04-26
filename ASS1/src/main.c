@@ -32,20 +32,21 @@ void catch_sigint(){
 void catch_sigtstp(){
 	if(pid > 0){ 
 		kill(pid, SIGTSTP); 
-		bg = pid;
+		bg = pid; //keeping the pid if we want to resume it afterwards
 		pid = -1;
 	}else{
 		signal(SIGTSTP, catch_sigtstp);
 	}
 }
 
-/* Catch dead children */
+/* Catch dead children 
+This handler is called every time a child process finishes so we can catch it*/
 void catch_sigchld(){
 	pid_t wpid;
 	int status;
 	signal(SIGCHLD, catch_sigchld);
 	wpid = waitpid(-1, &status, WNOHANG); // wait for the child process to finish
-	if(wpid == pid) pid = -1;
+	if(wpid == pid) pid = -1; 
 }
 
 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]){
 		last_status = command(-1,-1, -1, &pid, h, ca, input); // get a command and execute it
 
 		if(last_status != AMP && pid > 0){
-			pause();
+			pause(); // pause until a child finishes or is interrupted
 		}
 
 		if(last_status == MYINPUT){ // if the user typed myhistory, we need to open the file with the new input and replace the stdin
