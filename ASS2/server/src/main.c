@@ -17,31 +17,24 @@ pthread_mutex_t logmtx = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond_nonempty = PTHREAD_COND_INITIALIZER;
 pthread_cond_t cond_nonfull = PTHREAD_COND_INITIALIZER;
 
-pthread_t master_thread;
-pthread_t* worker_threads;
 
-Buffer *buffer;
 hash *logh;
 char * output;
+int time_to_die = 0;
 
-int numWorkerthreads;
 
 // cntrl c handler
 void sigint_handler(int signo){
 
 	poll_stats(logh, output);
 
-	pthread_cancel(master_thread);
-
-	for(int i = 0; i < numWorkerthreads; i++){
-		pthread_cancel(worker_threads[i]);
-	}
+	time_to_die = 1;
 
 	close(sock);
-	buffer_destroy(buffer);
-	hash_destroy(logh);
-	free(worker_threads);
-	exit(0);
+	pthread_cond_broadcast(&cond_nonempty);
+	pthread_cond_broadcast(&cond_nonfull);
+	pthread_mutex_unlock(&mtx);
+
 }
 
 
@@ -58,9 +51,17 @@ int fill_args(int argc, char ** argv, int *portnum, int *numWorkerthreads, int *
 }
 
 int main(int argc, char **argv){
-	signal(SIGINT, sigint_handler);
-	int portnum, bufferSize;
+	Buffer *buffer;
+	struct sigaction act;
+	act.sa_handler = sigint_handler;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	sigaction(SIGINT, &act, NULL);
+
+
+	int portnum, bufferSize, numWorkerthreads;
 	char poll_log[100], poll_stats[100];
+	pthread_t master_thread;
 
 	if(!fill_args(argc, argv, &portnum, &numWorkerthreads, &bufferSize, poll_log, poll_stats)) return 0;
 
@@ -74,8 +75,6 @@ int main(int argc, char **argv){
 	master_args.buffer = buffer;
 	master_args.log = logh;
 
-	worker_threads = malloc(sizeof(pthread_t) * numWorkerthreads);
-
 
 	// create master thread
 	if(pthread_create(&master_thread, NULL, master_thread_fun, (void *) &master_args)){
@@ -83,10 +82,18 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
+	// pthread sig mask
+	sigset_t set;
+	sigemptyset(&set);
+	sigaddset(&set, SIGINT);
+	pthread_sigmask(SIG_BLOCK, &set, NULL);
+
+
 	//  end master thread
 	pthread_join(master_thread, NULL);
 
-	if(buffer) buffer_destroy(buffer);
-	if(logh) hash_destroy(logh);
+	buffer_destroy(buffer);
+	hash_destroy(logh);
+
 
 }

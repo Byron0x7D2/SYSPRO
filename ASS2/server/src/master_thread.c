@@ -19,13 +19,11 @@ void* master_thread_fun(void *arg){
 	hash *log = ((master_thread_args *) arg)->log;
 
 	// create socket
-	int sock;
 	if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0){
 		printf("Error creating socket\n");
 		pthread_exit(NULL);
 	}
 
-	// bind socket usning SO_REUSEADDR flag
 	struct sockaddr_in server;
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -48,6 +46,7 @@ void* master_thread_fun(void *arg){
 	worker_thread_args worker_args;
 	worker_args.buffer = buffer;
 	worker_args.log = log;
+	pthread_t worker_threads[numWorkerThreads];
 
 	for(int i = 0; i < numWorkerThreads; i++){ 
 
@@ -60,9 +59,9 @@ void* master_thread_fun(void *arg){
 	// accept connections
 	int newsock;
 
-	while(1){
-
+	while(!time_to_die){
 		if((newsock = accept(sock, NULL, NULL)) < 0){
+			if(time_to_die) break;
 			printf("Error accepting connection\n");
 			pthread_exit(NULL);
 		}
@@ -71,6 +70,10 @@ void* master_thread_fun(void *arg){
 		pthread_mutex_lock(&mtx);
 		while(buffer_count(buffer) >=  buffer_size(buffer)){
 			pthread_cond_wait(&cond_nonfull, &mtx);
+			if(time_to_die){
+				pthread_mutex_unlock(&mtx);
+				break;
+			}
 		}
 		buffer_insert(buffer, newsock);
 		pthread_mutex_unlock(&mtx);
@@ -78,12 +81,13 @@ void* master_thread_fun(void *arg){
 
 	}
 	
+	close(sock);
 
-	// maybe make cntrl C change a variable to end the loop and then kill the threads and then join them
-	// join worker threads
+	// wait for worker threads to finish
 	for(int i = 0; i < numWorkerThreads; i++){
 		pthread_join(worker_threads[i], NULL);
 	}
+
 
 
 	// exit

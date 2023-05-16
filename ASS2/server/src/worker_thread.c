@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <signal.h>
+
 
 #include "../include/defines.h"
 #include "../include/buffer.h"
@@ -50,12 +52,21 @@ void *worker_thread_fun(void *arg){
 	Buffer *buffer = ((worker_thread_args *) arg)->buffer;
 	hash *log = ((worker_thread_args *) arg)->log;
 
+	sigset_t set;
+	sigemptyset(&set);
+	sigaddset(&set, SIGINT);
+	pthread_sigmask(SIG_BLOCK, &set, NULL);
+
 	
-	while(1){
+	while(!time_to_die){
 
 		pthread_mutex_lock(&mtx);
 		while(!buffer_count(buffer)){
 			pthread_cond_wait(&cond_nonempty, &mtx);
+			if(time_to_die){
+				pthread_mutex_unlock(&mtx);
+				pthread_exit(NULL);
+			}
 		}
 		int value = buffer_remove(buffer);
 		pthread_mutex_unlock(&mtx);
@@ -114,5 +125,5 @@ void *worker_thread_fun(void *arg){
 		close(value);
 
 	}
-
+	pthread_exit(NULL);
 }
