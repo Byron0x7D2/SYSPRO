@@ -35,11 +35,12 @@ int read_message(int sock, char *string){
 			return -1;
 		}
 		bytes_read += ret;
-		if(string[bytes_read - 1] == '\n'){
-			string[bytes_read - 1] = '\0';
+		if(string[bytes_read - 2] == 13){ // stupid carriage return from telnet
+			string[bytes_read - 2] = '\0';
 			break;
 		}
 	}
+
 	return 0;
 }
 
@@ -75,6 +76,7 @@ void *worker_thread_fun(void *arg){
 			close(value);
 			continue;
 		}
+		// printf("Received name: %s\n", name);
 
 		pthread_mutex_lock(&logmtx);
 		ret = hash_lookup(log, name);
@@ -95,13 +97,15 @@ void *worker_thread_fun(void *arg){
 				close(value);
 				continue;
 			}
+			// printf("Received vote: %s\n", vote);
 
 			pthread_mutex_lock(&logmtx);
 			hash_insert(log, name, vote);
 			pthread_mutex_unlock(&logmtx);
 
 
-			sprintf(buf, "VOTE for Party %s RECORDED", vote);
+			sprintf(buf, "VOTE for Party %s RECORDED\n", vote);
+			// printf("Sending message: %s\n", buf);
 			send_message(value, buf);
 						
 		}

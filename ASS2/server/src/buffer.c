@@ -49,19 +49,19 @@ void buffer_destroy(Buffer *b){
 	free(b);
 }
 
-int main(){
-	Buffer *b = buffer_init(10);
-	for(int i = 0; i < 10; i++){
-		buffer_insert(b, i);
-	}
-	for(int i = 0; i < 6; i++){
-		printf("%d\n", buffer_remove(b));
-	}
-	for(int i = 0; i < 6; i++){
-		buffer_insert(b, i+10);
-	}
-	for(int i = 0; i < 10; i++){
-		printf("%d\n", buffer_remove(b));
-	}
-	buffer_destroy(b);
-}
+// int main(){
+// 	Buffer *b = buffer_init(10);
+// 	for(int i = 0; i < 10; i++){
+// 		buffer_insert(b, i);
+// 	}
+// 	for(int i = 0; i < 6; i++){
+// 		printf("%d\n", buffer_remove(b));
+// 	}
+// 	for(int i = 0; i < 6; i++){
+// 		buffer_insert(b, i+10);
+// 	}
+// 	for(int i = 0; i < 10; i++){
+// 		printf("%d\n", buffer_remove(b));
+// 	}
+// 	buffer_destroy(b);
+// }
