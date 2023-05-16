@@ -84,6 +84,7 @@ During the execution phase the following happen:
  - Updates the input or output streams according to its command line arguments using the `dup2` function.
  - Forks for the child process.
  - Returns the pid of the created process for main to wait for it to end if it has to or -1 of there is nothing to wait. -2 is a special case for myhistory so main changes the input stream.
+Some ideas were taken from chapter 6.4 from Rochkind's book provided by Evdoxos. (Noted here as discussed with mr Doulas)
 
 ### **a) Redirection support**
 
