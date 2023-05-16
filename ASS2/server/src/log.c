@@ -123,7 +123,7 @@ void hash_insert(hash *h, char *key, char* value){
 
 }
 
-void poll_stats(hash *h, char *filename){
+void poll_stats_fun(hash *h, char *filename){
 	
 	FILE *fp = fopen(filename, "w");
 	// for eacg party in the votes list, it prints the party and the number of votes

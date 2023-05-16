@@ -18,15 +18,12 @@ pthread_cond_t cond_nonempty = PTHREAD_COND_INITIALIZER;
 pthread_cond_t cond_nonfull = PTHREAD_COND_INITIALIZER;
 
 
-hash *logh;
-char * output;
+
 int time_to_die = 0;
 
 
 // cntrl c handler
 void sigint_handler(int signo){
-
-	poll_stats(logh, output);
 
 	time_to_die = 1;
 
@@ -46,12 +43,12 @@ int fill_args(int argc, char ** argv, int *portnum, int *numWorkerthreads, int *
 	if(numWorkerthreads <= 0 || bufferSize <= 0) {printf("Invalid arguments\n"); return 0;}
 	strcpy(poll_log, argv[4]);
 	strcpy(poll_stats, argv[5]);
-	output = poll_stats;
 	return 1;
 }
 
 int main(int argc, char **argv){
 	Buffer *buffer;
+	hash *logh;
 	struct sigaction act;
 	act.sa_handler = sigint_handler;
 	sigemptyset(&act.sa_mask);
@@ -64,6 +61,10 @@ int main(int argc, char **argv){
 	pthread_t master_thread;
 
 	if(!fill_args(argc, argv, &portnum, &numWorkerthreads, &bufferSize, poll_log, poll_stats)) return 0;
+
+	// open log file
+	FILE *fp = fopen(poll_log, "w");
+	fclose(fp);
 
 	buffer = buffer_init(bufferSize);
 	logh = hash_create(poll_log);
@@ -91,6 +92,7 @@ int main(int argc, char **argv){
 
 	//  end master thread
 	pthread_join(master_thread, NULL);
+	poll_stats_fun(logh, poll_stats);
 
 	buffer_destroy(buffer);
 	hash_destroy(logh);

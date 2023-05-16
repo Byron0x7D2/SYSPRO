@@ -6,4 +6,4 @@ hash *hash_create(char *);
 int hash_lookup(hash *, char *);
 void hash_insert(hash *, char *, char *);
 void hash_destroy(hash *);
-void poll_stats(hash *, char *);
+void poll_stats_fun(hash *, char *);
