@@ -123,9 +123,31 @@ void hash_insert(hash *h, char *key, char* value){
 
 }
 
+void poll_stats(hash *h, char *filename){
+	
+	FILE *fp = fopen(filename, "w");
+	// for eacg party in the votes list, it prints the party and the number of votes
+	Votes *v = h->vot;
+	while(v){
+		fprintf(fp, "%s	%d\n", v->party, v->votes);
+		v = v->next;
+	}
+
+	fclose(fp);
+}
+
+
 /* Frees the memory allocated for the hash table
 and saves the aliases in the memory file */
 void hash_destroy(hash *h){
+
+	Votes *v = h->vot;
+	while(v){
+		Votes *temp = v;
+		v = v->next;
+		free(temp);
+	}
+
 	
 	for(int i = 0; i < HASH_SIZE; i++){
 		entry *p = h->table[i];

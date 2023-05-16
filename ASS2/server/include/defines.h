@@ -19,6 +19,9 @@ void* worker_thread_fun(void *arg);
 
 extern pthread_mutex_t mtx, logmtx;
 extern pthread_cond_t cond_nonempty, cond_nonfull;
+extern pthread_t master_thread;
+extern pthread_t* worker_threads;
+extern int sock;
 
 #define MAX_NAME_LENGTH 100
 #define HASH_SIZE 1091

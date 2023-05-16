@@ -17,14 +17,35 @@ pthread_mutex_t logmtx = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond_nonempty = PTHREAD_COND_INITIALIZER;
 pthread_cond_t cond_nonfull = PTHREAD_COND_INITIALIZER;
 
+pthread_t master_thread;
+pthread_t* worker_threads;
+
+Buffer *buffer;
+hash *logh;
+char * output;
+
+int numWorkerthreads;
+
 // cntrl c handler
 void sigint_handler(int signo){
-	printf("Exiting...\n");
+
+	poll_stats(logh, output);
+
+	pthread_cancel(master_thread);
+
+	for(int i = 0; i < numWorkerthreads; i++){
+		pthread_cancel(worker_threads[i]);
+	}
+
+	close(sock);
+	buffer_destroy(buffer);
+	hash_destroy(logh);
+	free(worker_threads);
 	exit(0);
 }
 
 
-int fillargs(int argc, char ** argv, int *portnum, int *numWorkerthreads, int *bufferSize, char *poll_log, char * poll_stats){
+int fill_args(int argc, char ** argv, int *portnum, int *numWorkerthreads, int *bufferSize, char *poll_log, char * poll_stats){
 	if(argc < 6) {printf("Not enough arguments\n"); return 0;}
 	*portnum = atoi(argv[1]);
 	*numWorkerthreads = atoi(argv[2]);
@@ -32,31 +53,32 @@ int fillargs(int argc, char ** argv, int *portnum, int *numWorkerthreads, int *b
 	if(numWorkerthreads <= 0 || bufferSize <= 0) {printf("Invalid arguments\n"); return 0;}
 	strcpy(poll_log, argv[4]);
 	strcpy(poll_stats, argv[5]);
+	output = poll_stats;
 	return 1;
 }
 
 int main(int argc, char **argv){
 	signal(SIGINT, sigint_handler);
-	int portnum, numWorkerthreads, bufferSize;
+	int portnum, bufferSize;
 	char poll_log[100], poll_stats[100];
 
-	if(!fillargs(argc, argv, &portnum, &numWorkerthreads, &bufferSize, poll_log, poll_stats)) return 0;
+	if(!fill_args(argc, argv, &portnum, &numWorkerthreads, &bufferSize, poll_log, poll_stats)) return 0;
 
-	// create the buffer
-	Buffer *buffer = buffer_init(bufferSize);
-	hash *log = hash_create(poll_log);
+	buffer = buffer_init(bufferSize);
+	logh = hash_create(poll_log);
 
 	// fill the struct for the master thread to take as argument
-	master_thread_args *master_args = malloc(sizeof(master_thread_args));
-	master_args->portnum = portnum;
-	master_args->numWorkerThreads = numWorkerthreads;
-	master_args->buffer = buffer;
-	master_args->log = log;
+	master_thread_args master_args ;
+	master_args.portnum = portnum;
+	master_args.numWorkerThreads = numWorkerthreads;
+	master_args.buffer = buffer;
+	master_args.log = logh;
+
+	worker_threads = malloc(sizeof(pthread_t) * numWorkerthreads);
 
 
 	// create master thread
-	pthread_t master_thread;
-	if(pthread_create(&master_thread, NULL, master_thread_fun, (void *) master_args)){
+	if(pthread_create(&master_thread, NULL, master_thread_fun, (void *) &master_args)){
 		printf("Error creating master thread\n");
 		return 0;
 	}
@@ -65,6 +87,6 @@ int main(int argc, char **argv){
 	pthread_join(master_thread, NULL);
 
 	if(buffer) buffer_destroy(buffer);
-	if(log) hash_destroy(log);
+	if(logh) hash_destroy(logh);
 
 }

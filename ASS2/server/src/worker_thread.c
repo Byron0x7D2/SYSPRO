@@ -50,8 +50,7 @@ void *worker_thread_fun(void *arg){
 	Buffer *buffer = ((worker_thread_args *) arg)->buffer;
 	hash *log = ((worker_thread_args *) arg)->log;
 
-	free(arg);
-
+	
 	while(1){
 
 		pthread_mutex_lock(&mtx);

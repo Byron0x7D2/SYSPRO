@@ -10,15 +10,13 @@
 #include "../include/defines.h"
 #include "../include/buffer.h"
 
+int sock;
+
 void* master_thread_fun(void *arg){
 	int portnum = ((master_thread_args *) arg)->portnum;
 	int numWorkerThreads = ((master_thread_args *) arg)->numWorkerThreads;
 	Buffer *buffer = ((master_thread_args *) arg)->buffer;
 	hash *log = ((master_thread_args *) arg)->log;
-
-	free(arg);
-
-	worker_thread_args *worker_args;
 
 	// create socket
 	int sock;
@@ -27,11 +25,13 @@ void* master_thread_fun(void *arg){
 		pthread_exit(NULL);
 	}
 
-	// bind socket
+	// bind socket usning SO_REUSEADDR flag
 	struct sockaddr_in server;
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 	server.sin_port = htons(portnum);
+	int optval = 1;
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 	if(bind(sock, (struct sockaddr *) &server, sizeof(server)) < 0){
 		printf("Error binding socket\n");
 		pthread_exit(NULL);
@@ -45,14 +45,13 @@ void* master_thread_fun(void *arg){
 
 
 	// create worker threads
-	pthread_t worker_threads[numWorkerThreads];
+	worker_thread_args worker_args;
+	worker_args.buffer = buffer;
+	worker_args.log = log;
+
 	for(int i = 0; i < numWorkerThreads; i++){ 
 
-		worker_args = malloc(sizeof(worker_thread_args));
-		worker_args->buffer = buffer;
-		worker_args->log = log;
-
-		if(pthread_create(&worker_threads[i], NULL, worker_thread_fun, (void *) worker_args)){
+		if(pthread_create(&worker_threads[i], NULL, worker_thread_fun, (void *) &worker_args)){
 			printf("Error creating worker thread\n");
 			pthread_exit(NULL);
 		}
