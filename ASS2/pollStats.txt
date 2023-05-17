@@ -1,1 +1,5 @@
-dw	1
+vote2 17
+vote1 33
+vote4 24
+vote5 22
+vote3 24

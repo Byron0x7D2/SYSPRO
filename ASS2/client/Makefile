@@ -10,9 +10,9 @@ CFLAGS = -pthread -Wall -g3 $(DEFINES) -I$(INCLUDE)
 SRCS    := $(wildcard $(SRC)/*.c)
 OBJS    := $(patsubst $(SRC)/%.c,$(SRC)/%.o,$(SRCS)) 
 
-EXEC = poller
+EXEC = pollSwayer 
 
-ARGS = 6969 8 16 ../pollLog.txt ../pollStats.txt
+ARGS = localhost 6969 ../inputFile.txt
 
 $(EXEC): $(OBJS) 
 	$(CC) $(OBJS) $(LIBS) -o $(EXEC) 
