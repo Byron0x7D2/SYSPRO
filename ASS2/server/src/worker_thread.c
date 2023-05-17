@@ -41,6 +41,10 @@ int read_message(int sock, char *string){
 			string[bytes_read - 2] = '\0';
 			break;
 		}
+		if(string[bytes_read - 1] == '\n'){
+			string[bytes_read - 1] = '\0';
+			break;
+		}
 	}
 
 	return 0;
