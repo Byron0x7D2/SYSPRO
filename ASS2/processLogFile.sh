@@ -10,4 +10,11 @@ if [ ! -r $1 ]; then
 	exit 1
 fi
 
-cat $1 | awk '{print $2}' | sort | uniq -c | awk '{print $2, $1}' > pollerResaultsFile
+cat $1 > temp1 
+awk '{print $2}' temp1 > temp2
+sort temp2 > temp3
+uniq -c temp3 > temp4
+awk '{print $2, $1}' temp4 > pollerResaultsFile
+rm temp1 temp2 temp3 temp4
+
+

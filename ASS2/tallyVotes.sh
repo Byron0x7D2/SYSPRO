@@ -10,4 +10,11 @@ if [ ! -f inputFile ]; then
 	exit 1
 fi
 
-cat inputFile | awk '{print $2}' | sort | uniq -c | awk '{print $2, $1}' > $1
+
+cat inputFile > temp1
+awk '{print $2}' temp1 > temp2
+sort temp2 > temp3
+uniq -c temp3 > temp4
+awk '{print $2, $1}' temp4 > $1
+rm temp1 temp2 temp3 temp4
+ 
