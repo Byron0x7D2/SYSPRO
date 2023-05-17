@@ -129,7 +129,7 @@ void poll_stats_fun(hash *h, char *filename){
 	// for eacg party in the votes list, it prints the party and the number of votes
 	Votes *v = h->vot;
 	while(v){
-		fprintf(fp, "%s	%d\n", v->party, v->votes);
+		fprintf(fp, "%s %d\n", v->party, v->votes);
 		v = v->next;
 	}
 
