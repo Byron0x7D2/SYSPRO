@@ -12,7 +12,7 @@ OBJS    := $(patsubst $(SRC)/%.c,$(SRC)/%.o,$(SRCS))
 
 EXEC = poller
 
-ARGS = 5634 8 16 pollLog.txt pollStats.txt
+ARGS = 5634 8 16 ../pollLog.txt ../pollStats.txt
 
 $(EXEC): $(OBJS) 
 	$(CC) $(OBJS) $(LIBS) -o $(EXEC) 
