@@ -5,7 +5,7 @@ import random
 def createFile():
 	file = open("inputFile.txt", "w")
 	for i in range(120):
-		file.write("name_surname" + str(i) + " " + "vote" + str(random.randint(1, 5)) + "\n")
+		file.write("voter_name" + str(i) + " " + "party_name" + str(random.randint(1, 5)) + "\n")
 	file.close()
     
 createFile()

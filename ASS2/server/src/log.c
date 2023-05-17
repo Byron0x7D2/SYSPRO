@@ -132,6 +132,7 @@ void poll_stats_fun(hash *h, char *filename){
 		fprintf(fp, "%s %d\n", v->party, v->votes);
 		v = v->next;
 	}
+	fprintf(fp, "TOTAL %d\n", h->entries);
 
 	fclose(fp);
 }

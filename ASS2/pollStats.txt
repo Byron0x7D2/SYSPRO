@@ -1,5 +1,6 @@
-vote2 17
-vote1 33
-vote4 24
-vote5 22
-vote3 24
+party_name3 24
+party_name2 20
+party_name5 31
+party_name1 29
+party_name4 16
+TOTAL 120
