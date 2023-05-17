@@ -6,12 +6,12 @@ if [ $# -ne 2 ]; then
 	exit 1
 fi
 
-touch inputFile.txt
+touch inputFile
 
 for (( i=0; i<$2; i++ )); do
 	randomString=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w $(( RANDOM % 10 + 3 )) | head -n 1)
 	randomParty=$(sed -n "$(( RANDOM % $(wc -l < $1) + 1 ))p" $1)
-	echo "$randomString $randomParty" >> inputFile.txt
+	echo "$randomString $randomParty" >> inputFile
 done
 
 

@@ -12,7 +12,7 @@ OBJS    := $(patsubst $(SRC)/%.c,$(SRC)/%.o,$(SRCS))
 
 EXEC = pollSwayer 
 
-ARGS = localhost 6969 ../inputFile.txt
+ARGS = localhost 6969 ../inputFile
 
 $(EXEC): $(OBJS) 
 	$(CC) $(OBJS) $(LIBS) -o $(EXEC) 
