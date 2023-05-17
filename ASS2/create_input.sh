@@ -13,3 +13,5 @@ for (( i=0; i<$2; i++ )); do
 	randomParty=$(sed -n "$(( RANDOM % $(wc -l < $1) + 1 ))p" $1)
 	echo "$randomString $randomParty" >> inputFile.txt
 done
+
+
