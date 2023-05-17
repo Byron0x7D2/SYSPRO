@@ -1,7 +1,7 @@
 #!/bin/bash
 
 characters='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-length=$(( RANDOM % 10 + 3 ))
+
 
 if [ $# -ne 2 ]; then
 	echo "Usage: $0 <political Parties> <numLines>"
@@ -11,6 +11,7 @@ fi
 touch inputFile
 
 for (( i=0; i<$2; i++ )); do
+	length=$(( RANDOM % 10 + 3 ))
 
 	randomString=""
 	for (( j=0; j<$length; j++ )); do
