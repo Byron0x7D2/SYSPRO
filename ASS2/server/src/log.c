@@ -15,14 +15,19 @@ int hashfun(char *key){
 
 typedef struct votes Votes;
 
+/* Struct for pollStats file
+Keeps the party and its votes */
 struct votes{
 	char party[MAX_NAME_LENGTH];
 	int votes;
 	Votes *next;
 };
 
+// mostly same to the first assignement
 
-struct Entry{ // node to be saved in the hash table, when we have conflicts we go to the next node
+
+/* Hash table entry */
+struct Entry{ 
 	char key[MAX_NAME_LENGTH];
 	char votes[MAX_NAME_LENGTH];
 	struct Entry *next;
@@ -30,13 +35,15 @@ struct Entry{ // node to be saved in the hash table, when we have conflicts we g
 
 typedef struct Entry entry;
 
-struct Hash{	// hash table
+/* Hash table */
+struct Hash{	
 	entry **table;
 	char filename[100];
 	int entries;
 	Votes* vot;
 };
 
+/* Initialize hash table */
 hash *hash_create(char *filename){
 
 	hash *h = malloc(sizeof(hash));
@@ -50,7 +57,7 @@ hash *hash_create(char *filename){
 	return h;
 }
 
-
+/* Search in hashtable */
 int hash_lookup(hash *h, char *key){
 
 	int index = hashfun(key);
@@ -95,21 +102,25 @@ void hash_insert(hash *h, char *key, char* value){
 	fprintf(fp, "%s %s\n", key, value);
 	fclose(fp);
 
-	// go through the votes list and if it finds the party, it increases the votes or creates a new node
+	// Save the votes in the votes list so we can print them in the pollStats file
 
 	Votes *v = h->vot;
-	if(!v){
+	if(!v){ // if the list is empty
+
 		h->vot = malloc(sizeof(Votes));
 		strcpy(h->vot->party, value);
 		h->vot->votes = 1;
 		h->vot->next = NULL;
 	}else{
-		while(v){
-			if(strcmp(v->party, value) == 0){
+
+		while(v){ 
+
+			if(strcmp(v->party, value) == 0){ // if the party already exists in the list, we increase the votes
 				v->votes++;
 				break;
-			}
-			if(!v->next){
+			} 
+			if(!v->next){ // if the party doesn't exist in the list, we add it
+
 				v->next = malloc(sizeof(Votes));
 				strcpy(v->next->party, value);
 				v->next->votes = 1;
@@ -119,14 +130,12 @@ void hash_insert(hash *h, char *key, char* value){
 			v = v->next;
 		}
 	}
-	
-
 }
 
+/* Function that prints the votes for each party to the file */
 void poll_stats_fun(hash *h, char *filename){
 	
 	FILE *fp = fopen(filename, "w");
-	// for eacg party in the votes list, it prints the party and the number of votes
 	Votes *v = h->vot;
 	while(v){
 		fprintf(fp, "%s %d\n", v->party, v->votes);
@@ -138,8 +147,7 @@ void poll_stats_fun(hash *h, char *filename){
 }
 
 
-/* Frees the memory allocated for the hash table
-and saves the aliases in the memory file */
+/* Frees the memory allocated for the hash table */
 void hash_destroy(hash *h){
 
 	Votes *v = h->vot;

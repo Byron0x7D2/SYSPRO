@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# almost same as processLogFile.sh so same comments :)
 if [ $# -ne 1 ]; then
 	echo "Usage: $0 <tallyResaultsFile>"
 	exit 1

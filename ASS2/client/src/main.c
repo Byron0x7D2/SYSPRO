@@ -9,6 +9,7 @@
 #include "../include/defines.h"
 #include <signal.h>
 
+/* function that fills arguments from command line */
 int fill_args(int argc, char ** argv, char *host, int *portnum, char *inputfile){
 	if(argc < 4) {printf("Not enough arguments\n"); return 0;}
 	strcpy(host, argv[1]);
@@ -17,6 +18,7 @@ int fill_args(int argc, char ** argv, char *host, int *portnum, char *inputfile)
 	return 1;
 }
 
+/* Count the lines of the file */
 int get_lines(char *filename){
 	FILE *fp = fopen(filename, "r");
 	if(fp == NULL) {printf("Error opening file\n"); return -1;}
@@ -29,8 +31,10 @@ int get_lines(char *filename){
 	return lines;
 }
 
-
+/* Main function, gets the command line arguments
+and for each line it creates a thread and sends it to connect and cast that vote */
 int main(int argc, char **argv){
+
 	char inputfile[100], host[100];
 	int port;
 
@@ -39,7 +43,7 @@ int main(int argc, char **argv){
 	int lines = get_lines(inputfile);
 
 
-	// for each line create a thread up to MAX_THREADS at a time
+	// Arguments for threads
 	pthread_t* threads = malloc(sizeof(pthread_t)*lines);
 	struct thread_args* args = malloc(sizeof(struct thread_args)*lines);
 	FILE *fp = fopen(inputfile, "r");
@@ -56,6 +60,7 @@ int main(int argc, char **argv){
 
 	fclose(fp);
 
+	// for each line create a thread, if the number of active threads is more than MAX_ACTIVE_THREADS wait for them to finish
 	int j, k;
 	for(int i = 0; i < lines; ){
 		for(j = 0; i < lines && j < MAX_ACTIVE_THREADS; j++, i++){
@@ -69,7 +74,5 @@ int main(int argc, char **argv){
 
 	free(threads);
 	free(args);
-
-	
 
 }

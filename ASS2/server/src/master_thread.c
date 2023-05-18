@@ -10,9 +10,22 @@
 #include "../include/defines.h"
 #include "../include/buffer.h"
 
-int sock;
+int sock; // global socket
 
+/* 
+	Function that the master thread runs
+	Creates socket
+	Binds socket
+	Listens for connections
+	
+	Creates worker threads
+	While active:
+		Accepts connections
+		Inserts connections to buffer
+		Signals worker threads to work (no free lunch :) )
+ */
 void* master_thread_fun(void *arg){
+
 	int portnum = ((master_thread_args *) arg)->portnum;
 	int numWorkerThreads = ((master_thread_args *) arg)->numWorkerThreads;
 	Buffer *buffer = ((master_thread_args *) arg)->buffer;
@@ -29,8 +42,9 @@ void* master_thread_fun(void *arg){
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 	server.sin_port = htons(portnum);
 	int optval = 1;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-	if(bind(sock, (struct sockaddr *) &server, sizeof(server)) < 0){
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)); 
+
+	if(bind(sock, (struct sockaddr *) &server, sizeof(server)) < 0){ // bind
 		printf("Error binding socket\n");
 		pthread_exit(NULL);
 	}
@@ -56,11 +70,12 @@ void* master_thread_fun(void *arg){
 		}
 	}
 
-	// accept connections
 	int newsock;
 
+	// main loop
 	while(!time_to_die){
-		if((newsock = accept(sock, NULL, NULL)) < 0){
+
+		if((newsock = accept(sock, NULL, NULL)) < 0){ // accept
 			if(time_to_die) break;
 			printf("Error accepting connection\n");
 			pthread_exit(NULL);
@@ -87,8 +102,6 @@ void* master_thread_fun(void *arg){
 	for(int i = 0; i < numWorkerThreads; i++){
 		pthread_join(worker_threads[i], NULL);
 	}
-
-
 
 	// exit
 	pthread_exit(NULL);
