@@ -14,7 +14,7 @@ cat $1 > temp1
 awk '{print $2}' temp1 > temp2 # get the party names
 sort temp2 > temp3 # sort the names
 uniq -c temp3 > temp4 # count the names
-awk '{print $2, $1}' temp4 > pollerResaultsFile # write the names and the number of votes in a file
+awk '{print $2, $1}' temp4 > pollerResaultsFile # write the names and the number of votes in a file in the reverse order of temp 4
 rm temp1 temp2 temp3 temp4 # remove the temporary files
 
 
