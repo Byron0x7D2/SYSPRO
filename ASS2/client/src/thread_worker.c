@@ -60,7 +60,6 @@ void * thread_function(void * args){
 	int port = ((struct thread_args *)args)->port;
 	char *host = ((struct thread_args *)args)->host;
 	char *line = ((struct thread_args *)args)->line;
-	int id = ((struct thread_args *)args)->id;
 	int sock = 0;
 
 	char name[MAX_NAME_SIZE];
