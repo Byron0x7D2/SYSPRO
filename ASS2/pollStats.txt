@@ -1,1 +1,11 @@
-TOTAL 0
+party_name2 89
+party_name8 100
+party_name9 109
+party_name6 99
+party_name5 81
+party_name4 108
+party_name1 104
+party_name7 107
+party_name3 111
+party_name0 92
+TOTAL 1000
