@@ -36,7 +36,7 @@ void* master_thread_fun(void *arg){
 	}
 
 	// listen
-	if(listen(sock, 5) < 0){
+	if(listen(sock, MAX_ACTIVE_CONNECTIONS) < 0){
 		printf("Error listening\n");
 		pthread_exit(NULL);
 	}

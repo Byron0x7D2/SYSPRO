@@ -126,6 +126,7 @@ void *worker_thread_fun(void *arg){
 
 
 		// close connection
+		shutdown(value, SHUT_RDWR);
 		close(value);
 
 	}

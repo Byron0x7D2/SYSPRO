@@ -24,3 +24,4 @@ extern int sock, time_to_die;
 
 #define MAX_NAME_LENGTH 100
 #define HASH_SIZE 1091
+#define MAX_ACTIVE_CONNECTIONS 100

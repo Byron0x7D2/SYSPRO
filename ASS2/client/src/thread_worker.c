@@ -33,27 +33,40 @@ void fill(char *line, char *name, char* vote){
 	vote[j+1] = '\0';
 }
 
-void send_message(int sock, char *msg){
+int send_message(int sock, char *msg){
 	int msglen = strlen(msg);
-	int sent = 0;
-	while(sent < msglen){
-		int n = send(sock, msg+sent, msglen-sent, 0);
-		if(n < 0){
-			printf("Error sending message\n");
-			return;
+	int bytes_sent = 0;
+	while(bytes_sent < msglen){
+		int ret = write(sock, msg + bytes_sent, msglen - bytes_sent);
+		if(ret < 0){
+			printf("Error writing to socket\n");
+			return -1;
 		}
-		sent += n;
+		bytes_sent += ret;
 	}
+	return 0;
 }
 
-char * receive_message(int sock, char*buffer){
-	int n = recv(sock, buffer, MAX_NAME_SIZE, 0);
-	if(n < 0){
-		printf("Error receiving message\n");
-		return NULL;
+int read_message(int sock, char *string){
+	int bytes_read = 0;
+	while(bytes_read < MAX_NAME_SIZE){
+		int ret = read(sock, string + bytes_read, MAX_NAME_SIZE - bytes_read);
+		if(ret < 0){
+			printf("Error reading from socket\n");
+			return -1;
+		}
+		bytes_read += ret;
+		if(string[bytes_read - 2] == 13){ // stupid carriage return from telnet
+			string[bytes_read - 2] = '\0';
+			break;
+		}
+		if(string[bytes_read - 1] == '\n'){
+			string[bytes_read - 1] = '\0';
+			break;
+		}
 	}
-	buffer[n] = '\0';
-	return buffer;
+
+	return 0;
 }
 
 void * thread_function(void * args){
@@ -78,6 +91,7 @@ void * thread_function(void * args){
 
 	if((rem = gethostbyname(host)) == NULL){
 		printf("Error getting host\n");
+		close(sock);
 		pthread_exit(NULL);
 	}
 
@@ -87,26 +101,22 @@ void * thread_function(void * args){
 
 	if(connect(sock, serverptr, sizeof(server)) < 0){
 		printf("Error connecting\n");
+		close(sock);
 		pthread_exit(NULL);
 	}
 
 
 
 	char buffer[MAX_NAME_SIZE];
-	// printf("Thread %d startng\n", id);
-	receive_message(sock, buffer);
-	// printf("Thread %d received %s\n", id, buffer);
+	read_message(sock, buffer);
 	send_message(sock, name);
-	// printf("Thread %d sent %s\n", id, name);
-	receive_message(sock, buffer);
-	// printf("Thread %d received %s\n", id, buffer);
+	read_message(sock, buffer);
 	if(strcmp(buffer, "ALREADY VOTED") != 0){
 		send_message(sock, vote);
-		// printf("Thread %d sent %s\n", id, vote);
 	}
+	read_message(sock, buffer);
 
-	// printf("Thread %d exiting\n", id);
-
+	shutdown(sock, SHUT_RDWR);
 	close(sock);
 
 	pthread_exit(NULL);

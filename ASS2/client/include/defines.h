@@ -1,4 +1,4 @@
-#define MAX_ACTIVE_THREADS 500
+#define MAX_ACTIVE_THREADS 100
 #define MAX_NAME_SIZE 100
 
 struct thread_args{
