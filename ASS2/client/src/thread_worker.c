@@ -60,6 +60,7 @@ void * thread_function(void * args){
 	int port = ((struct thread_args *)args)->port;
 	char *host = ((struct thread_args *)args)->host;
 	char *line = ((struct thread_args *)args)->line;
+	int id = ((struct thread_args *)args)->id;
 	int sock = 0;
 
 	char name[MAX_NAME_SIZE];
@@ -93,12 +94,19 @@ void * thread_function(void * args){
 
 
 	char buffer[MAX_NAME_SIZE];
+	// printf("Thread %d startng\n", id);
 	receive_message(sock, buffer);
+	// printf("Thread %d received %s\n", id, buffer);
 	send_message(sock, name);
+	// printf("Thread %d sent %s\n", id, name);
 	receive_message(sock, buffer);
+	// printf("Thread %d received %s\n", id, buffer);
 	if(strcmp(buffer, "ALREADY VOTED") != 0){
 		send_message(sock, vote);
+		// printf("Thread %d sent %s\n", id, vote);
 	}
+
+	// printf("Thread %d exiting\n", id);
 
 	close(sock);
 

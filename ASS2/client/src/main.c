@@ -52,6 +52,7 @@ int main(int argc, char **argv){
 		char line[MAX_NAME_SIZE*2];
 		fgets(line, MAX_NAME_SIZE*2, fp);
 		strcpy(args[i].line, line);
+		args[i].id=i;
 	}
 
 	fclose(fp);
