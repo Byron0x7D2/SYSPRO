@@ -37,7 +37,7 @@ int buffer_insert(Buffer *b, int value){
 /* Remove value from buffer */
 int buffer_remove(Buffer *b){
 
-	if(b->count == 0) return -1;
+	if(!b->count) return -1;
 
 	int value = b->array[b->start];
 	b->start = (b->start + 1) % b->size;
