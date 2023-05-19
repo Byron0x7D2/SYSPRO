@@ -10,11 +10,10 @@ if [ ! -r $1 ]; then # check if the file exists and is readable
 	exit 1
 fi
 
-cat $1 > temp1  
-awk '{print $2}' temp1 > temp2 # get the party names
-sort temp2 > temp3 # sort the names
-uniq -c temp3 > temp4 # count the names
-awk '{print $2, $1}' temp4 > pollerResaultsFile # write the names and the number of votes in a file in the reverse order of temp 4
-rm temp1 temp2 temp3 temp4 # remove the temporary files
+awk '{print $2}' $1 > temp1 # get the party names
+sort temp1 > temp2 # sort the names
+uniq -c temp2 > temp3 # count the names
+awk '{print $2, $1}' temp3 > pollerResaultsFile # write the names and the number of votes in a file in the reverse order of temp 4
+rm  temp1 temp2 temp3 # remove the temporary files
 
 

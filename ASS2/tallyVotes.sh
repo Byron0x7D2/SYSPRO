@@ -11,10 +11,9 @@ if [ ! -f inputFile ]; then
 fi
 
 
-cat inputFile > temp1
-awk '{print $2}' temp1 > temp2
-sort temp2 > temp3
-uniq -c temp3 > temp4
-awk '{print $2, $1}' temp4 > $1
-rm temp1 temp2 temp3 temp4
+awk '{print $2}' inputFile > temp1
+sort temp1 > temp2
+uniq -c temp2 > temp3
+awk '{print $2, $1}' temp3 > $1
+rm temp1 temp2 temp3 
  
