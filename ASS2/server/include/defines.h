@@ -25,4 +25,4 @@ extern int sock, time_to_die; // socket and flag for master thread and worker th
 
 #define MAX_NAME_LENGTH 100 // max length of a name
 #define HASH_SIZE 1091 // size of hash table
-#define MAX_ACTIVE_CONNECTIONS 100 // max number of active connections
+#define MAX_ACTIVE_CONNECTIONS 128 // max number of active connections
