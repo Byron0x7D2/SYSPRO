@@ -108,5 +108,10 @@ int main(int argc, char **argv){
 	buffer_destroy(buffer);
 	hash_destroy(logh);
 
+	pthread_mutex_destroy(&mtx);
+	pthread_mutex_destroy(&logmtx);
+	pthread_cond_destroy(&cond_nonempty);
+	pthread_cond_destroy(&cond_nonfull);
+
 
 }
