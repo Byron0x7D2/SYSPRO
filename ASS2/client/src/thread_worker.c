@@ -106,13 +106,15 @@ void * thread_function(void * args){
  
 	if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0){ // create socket
 		printf("Error creating socket\n");
-		pthread_exit(NULL);
+		// pthread_exit(NULL);
+		return (void*) 0;
 	}
  
 	if((rem = gethostbyname(host)) == NULL){ // get host
 		printf("Error getting host\n");
 		close(sock);
-		pthread_exit(NULL);
+		// pthread_exit(NULL);
+		return (void*) 0;
 	}
 
 	server.sin_family = AF_INET;
@@ -122,7 +124,8 @@ void * thread_function(void * args){
 	if(connect(sock, serverptr, sizeof(server)) < 0){ // connect to server
 		printf("Error connecting\n");
 		close(sock);
-		pthread_exit(NULL);
+		// pthread_exit(NULL);
+		return (void*) 0;
 	}
 
 
@@ -144,5 +147,6 @@ void * thread_function(void * args){
 	shutdown(sock, SHUT_RDWR);
 	close(sock);
 
-	pthread_exit(NULL);
+	// pthread_exit(NULL);
+	return (void*) 0;
 }

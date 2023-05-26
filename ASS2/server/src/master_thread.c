@@ -34,7 +34,8 @@ void* master_thread_fun(void *arg){
 	// create socket
 	if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0){
 		printf("Error creating socket\n");
-		pthread_exit(NULL);
+		// pthread_exit(NULL);
+		return (void*) 0;
 	}
 
 	struct sockaddr_in server;
@@ -46,13 +47,15 @@ void* master_thread_fun(void *arg){
 
 	if(bind(sock, (struct sockaddr *) &server, sizeof(server)) < 0){ // bind
 		printf("Error binding socket\n");
-		pthread_exit(NULL);
+		// pthread_exit(NULL);
+		return (void*) 0;
 	}
 
 	// listen
 	if(listen(sock, MAX_ACTIVE_CONNECTIONS) < 0){
 		printf("Error listening\n");
-		pthread_exit(NULL);
+		// pthread_exit(NULL);
+		return (void*) 0;
 	}
 
 
@@ -66,7 +69,8 @@ void* master_thread_fun(void *arg){
 
 		if(pthread_create(&worker_threads[i], NULL, worker_thread_fun, (void *) &worker_args)){
 			printf("Error creating worker thread\n");
-			pthread_exit(NULL);
+			// pthread_exit(NULL);
+			return (void*) 0;
 		}
 	}
 
@@ -78,7 +82,8 @@ void* master_thread_fun(void *arg){
 		if((newsock = accept(sock, NULL, NULL)) < 0){ // accept
 			if(time_to_die) break;
 			printf("Error accepting connection\n");
-			pthread_exit(NULL);
+			// pthread_exit(NULL);
+			return (void*) 0;
 		}
 
 		// add new connection to buffer 
@@ -104,5 +109,6 @@ void* master_thread_fun(void *arg){
 	}
 
 	// exit
-	pthread_exit(NULL);
+	// pthread_exit(NULL);
+	return (void*) 0;
 }

@@ -85,7 +85,8 @@ void *worker_thread_fun(void *arg){
 			pthread_cond_wait(&cond_nonempty, &mtx); // wait for buffer to have something
 			if(time_to_die){ // if time to die, exit
 				pthread_mutex_unlock(&mtx); 
-				pthread_exit(NULL);
+				// pthread_exit(NULL);
+				return (void*) 0;
 			}
 		}
 
@@ -141,5 +142,6 @@ void *worker_thread_fun(void *arg){
 		close(value);
 
 	}
-	pthread_exit(NULL);
+	// pthread_exit(NULL);
+	return (void*) 0;
 }
