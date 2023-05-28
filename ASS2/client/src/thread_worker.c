@@ -97,6 +97,8 @@ void * thread_function(void * args){
 
 	char name[MAX_NAME_SIZE];
 	char vote[MAX_NAME_SIZE];
+
+	if(strlen(line) == 1)return (void*) 0;
 	fill(line, name, vote);
 
 	struct sockaddr_in server;
