@@ -10,7 +10,7 @@ if [ ! -r $1 ]; then # check if the file exists and is readable
 	exit 1
 fi
 
-awk '{print $2}' $1 > temp1 # get the party names
+awk '{print $3}' $1 > temp1 # get the party names
 sort temp1 > temp2 # sort the names
 uniq -c temp2 > temp3 # count the names
 awk '{print $2, $1}' temp3 > pollerResaultsFile # write the names and the number of votes in a file in the reverse order of temp 4
