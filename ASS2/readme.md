@@ -66,6 +66,7 @@ The solution for this problem can be found in the ``server`` directory.
  - ``worker_thread.c`` -> This file contains the code for the worker threads. We start by defining 2 functions that send or receive a message to that socket. The main worker thread function is a simple loop until the interrupt that as the consumer takes the socket fd from the buffer, exhanges messages and updates, the guarded by mutexes, log data structure (that is the hash ADT basically)
  - ``buffer.c`` -> This file contains the code for the buffer implementation. It is a simple array we loop arround. Nothing noteworthy. The synchronisation for both data structures is managed before calling the functions so no thread safety is taken into account in the implementation.
  - ``log.c`` -> This file is a reuse of the hash ADT from the first assignment. It is enhanced with a seperate list that counts for each party its votes. Whenever we get an entry, we also print in the log file using the assignment format. There is also a function that prints in the given file the statisticks for each party, followed by the total number of votes.
+ - Small note, due to valgrind complaining with pthread exit, we exit threads by returning NULL.
 
 ### Problem 2
 The solution for this problem is in the ``client`` directory
