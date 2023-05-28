@@ -10,10 +10,11 @@ if [ ! -f inputFile.txt ]; then
 	exit 1
 fi
 
-
-awk '{print $2}' .txt > temp1
+# remove lines that have the same name, keeping the first one
+awk '!seen[$1]++' inputFile.txt > temp0
+awk '{print $2}' temp0 > temp1
 sort temp1 > temp2
 uniq -c temp2 > temp3
 awk '{print $2, $1}' temp3 > $1
-rm temp1 temp2 temp3 
+rm temp1 temp2 temp3 temp0
  
