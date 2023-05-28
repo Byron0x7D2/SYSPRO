@@ -142,9 +142,8 @@ void * thread_function(void * args){
 
 	if(strcmp(buffer, "ALREADY VOTED") != 0){
 		send_message(sock, vote); // send vote
+		read_message(sock, buffer); // read VOTE for Party XYZ RECORDED
 	}
-
-	read_message(sock, buffer); // read VOTE for Party XYZ RECORDED
 
 	shutdown(sock, SHUT_RDWR);
 	close(sock);
