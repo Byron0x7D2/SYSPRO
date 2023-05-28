@@ -20,6 +20,14 @@ void fill(char *line, char *name, char* vote){
 		name[i] = line[i];
 		i++;
 	}
+	name[i] = ' ';
+	i++;
+
+	while(line[i] != ' '){  // get the name
+		name[i] = line[i];
+		i++;
+	}
+
 
 	name[i] = '\n';
 	name[i+1] = '\0';
