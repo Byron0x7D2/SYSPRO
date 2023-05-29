@@ -33,11 +33,11 @@ or
 
 > make valgrind
 
-To create the ``inputFile``
+To create the ``inputFile.txt``
 
 > chmod 777 create_imput.sh
 
-> ./create_input.sh politicalParties.txt 1000
+> ./create_input.sh political_parties.txt 1000
 
 To create the ``pollerResaultsFile``
 
@@ -49,13 +49,13 @@ To create the ``pollerResultsFile``
 
 > chmod 777 processLogFile.sh
 
-> ./processLogFile.sh pollLog.txt 
+> ./processLogFile.sh log.txt 
 
 To compare the 2 files 
 
 > diff pollerResaultsFile tallyResaultsFile 
 
-If you want to change the host or the port numbers, or the command line arguments in general simply go to the corresponding makefile and change the arguments section. Default is the localhost and port 6969 for its meme potential and the rest are the same as the instructions.
+If you want to change the host or the port numbers, or the command line arguments in general simply go to the corresponding makefile and change the arguments section. Be aware there is a difference between the executables and the directory that has the files so use the correct pathto the file.
 
 ### Problem 1
 
