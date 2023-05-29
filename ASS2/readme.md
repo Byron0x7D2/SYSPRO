@@ -33,7 +33,7 @@ or
 
 > make valgrind
 
-To create the ``inputFile.txt``
+To create the ``inputFile``
 
 > chmod 777 create_imput.sh
 
