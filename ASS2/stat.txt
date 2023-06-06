@@ -1,12 +1,12 @@
-nea_dimokratia 6
-pasok 5
-ethniki_dimiourgia 4
 syriza 5
-ellhniki_lysi 4
 niki 4
 pleysi_eleftherias 4
+nea_dimokratia 6
 mera_25 4
+pasok 5
 lefko 4
+ethniki_dimiourgia 4
 kke 5
 symmaxia_anatropis 4
+ellhniki_lysi 4
 TOTAL 49
