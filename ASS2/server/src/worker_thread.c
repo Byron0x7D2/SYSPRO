@@ -111,7 +111,7 @@ void *worker_thread_fun(void *arg){
 
 		pthread_mutex_lock(&logmtx);
 		ret = hash_lookup(log, name); // check if already voted
-		if(!ret) check = insert_if_not_inside(&pending, name); // if not, insert in pending list
+		if(!ret) check = insert_if_not_inside(&pending, name); // if not, insert in pending list while also checking if he has not already voted
 		pthread_mutex_unlock(&logmtx);
 
 		if(ret || !check){

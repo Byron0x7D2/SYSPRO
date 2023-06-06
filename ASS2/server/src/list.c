@@ -13,6 +13,7 @@ struct pending{
 	Pending *next;
 };
 
+/* Insert in the list if name not already inside*/
 int insert_if_not_inside(Pending **head, char* name){
 	Pending *temp = *head;
 	while(temp){
@@ -28,6 +29,7 @@ int insert_if_not_inside(Pending **head, char* name){
 	return 1;
 }
 
+/* Remove from list */
 Pending* remove_from_pending(Pending *head, char* name){
 	Pending *temp = head;
 	Pending *prev = NULL;
