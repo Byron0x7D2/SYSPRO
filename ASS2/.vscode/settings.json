@@ -1,5 +1,8 @@
 {
 	"files.associations": {
-		"defines.h": "c"
+		"defines.h": "c",
+		"list.h": "c",
+		"*.tcc": "c",
+		"list": "c"
 	}
 }

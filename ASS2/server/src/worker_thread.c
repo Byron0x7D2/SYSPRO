@@ -13,6 +13,7 @@
 #include "../include/defines.h"
 #include "../include/buffer.h"
 #include "../include/log.h"
+#include "../include/list.h"
 
 
 /* Function to send message to socket */
@@ -76,6 +77,7 @@ void *worker_thread_fun(void *arg){
 	sigemptyset(&set);
 	sigaddset(&set, SIGINT);
 	pthread_sigmask(SIG_BLOCK, &set, NULL);
+	int check;
 
 	
 	while(!time_to_die){
@@ -105,11 +107,14 @@ void *worker_thread_fun(void *arg){
 			continue;
 		}
 
+		check = 0;
+
 		pthread_mutex_lock(&logmtx);
 		ret = hash_lookup(log, name); // check if already voted
+		if(!ret) check = insert_if_not_inside(&pending, name); // if not, insert in pending list
 		pthread_mutex_unlock(&logmtx);
 
-		if(ret){
+		if(ret || !check){
 
 			send_message(value, "ALREADY VOTED\n");
 			close(value);
@@ -127,6 +132,7 @@ void *worker_thread_fun(void *arg){
 			}
 
 			pthread_mutex_lock(&logmtx);
+			pending = remove_from_pending(pending, name); // remove from pending list
 			hash_insert(log, name, vote); // insert vote in log
 			pthread_mutex_unlock(&logmtx);
 

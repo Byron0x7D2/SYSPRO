@@ -9,6 +9,7 @@
 #include "../include/defines.h"
 #include "../include/buffer.h"
 #include "../include/log.h"
+#include "../include/list.h"
 #include <signal.h>
 
 // Mutexe and condition variable initialization
@@ -20,6 +21,9 @@ pthread_cond_t cond_nonfull = PTHREAD_COND_INITIALIZER;
 
 // global flag for threads to go die
 int time_to_die = 0;
+
+// Pending names to be inserted 
+Pending *pending = NULL;
 
 // cntrl c handler
 void sigint_handler(int signo){

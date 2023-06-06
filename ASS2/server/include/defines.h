@@ -1,6 +1,7 @@
 #pragma once
 #include "buffer.h"
 #include "log.h"
+#include "list.h"
 
 // struct for arguments to be passed to the master thread
 typedef struct master_thread_args{
@@ -20,6 +21,8 @@ void* worker_thread_fun(void *arg);
 
 extern pthread_mutex_t mtx, logmtx; // mutexes
 extern pthread_cond_t cond_nonempty, cond_nonfull; // condition variables
+
+extern Pending *pending; // list of pending names
 
 extern int sock, time_to_die; // socket and flag for master thread and worker threads to die
 
