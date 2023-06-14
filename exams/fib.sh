@@ -12,6 +12,8 @@ if [ -f $2 ] ; then
 fi
 touch $2
 
+
+# fib
 fn_1=1
 fn_2=1
 for ((i=1; i <= "$1"; i++)) do
@@ -21,17 +23,10 @@ for ((i=1; i <= "$1"; i++)) do
     fn_2=$fn
 done
 
-
-# # from 1 to the first argument find the fibonacci number and print it to the file
-# for (( i=1; i<=$1; i++ )); do
-# 	if [ $i -eq 1 ] || [ $i -eq 2 ] ; then
-# 		echo 1 >> $2
-# 	else
-# 		# get the last two numbers from the file
-# 		last1=$(tail -n 1 $2)
-# 		last2=$(tail -n 2 $2 | head -n 1)
-# 		# add them together and print it to the file
-# 		echo $((last1+last2)) >> $2
-# 	fi
-# done
+# fact
+fact=1
+for ((i=1; i <= "$1"; i++)) do
+    fact=`expr $fact \* $i`
+done
+ech $fact
 
